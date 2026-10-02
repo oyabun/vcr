@@ -9,18 +9,15 @@
 (function () {
   'use strict';
   const $ = (id) => document.getElementById(id);
+  const BASE = /\/exp\//.test(location.pathname) ? '../' : '';   // exp/ pages sit one level below demo-tapes/ and the root
+  const STUDIO = (/\/exp\//.test(location.pathname) ? '' : 'exp/') + 'deck-studio.html';
   const stage = $('stage'), cv = $('cv'), playBtn = $('playBtn');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
-  // [id, title, lines, size, label colour, session length in seconds, as the player measures it (alt/shared/parse-tape.js)]
-  const DEMOS = [
-    ['platform-game', 'Retro platformer game', 487, '1.5MB', '--orange', 9302],
-    ['crush-game', 'Match-3 phone game', 520, '6.8MB', '--c-write', 2289],
-    ['git-visor', 'Git archaeology visualizer', 692, '4.7MB', '--c-bash', 1929],
-    ['marginalia-links', 'Link library & feed reader', 875, '1.4MB', '--c-read', 1962],
-    ['orbit-watch', 'Real-time ISS tracker', 982, '5.9MB', '--c-text', 2922],
-  ];
+  // the demo shelf's tapes: read from demo-tapes/ at runtime (shared/demo-tapes.js), not hardcoded here —
+  // DEMOS starts empty and fills in once that resolves (see boot() below).
+  let DEMOS = [], noDemos = false;
   const C3 = window.VCRCart3D;
   const SHUTTLE_MS = 3500;                      // end to end while REW / FF is held
   const SPEEDS = [1, 4, 10, 30, 60, 120];        // the knob's detents, as on alt/5
@@ -31,8 +28,11 @@
 
   // the demo shelf: small flat cartridges, rewound (all tape on the left spool), as in the big one (cart3d.js draws them)
   const picker = $('picker');   // optional (tapes-cartridge-02.html has one, the landing hero doesn't)
-  if (picker) picker.innerHTML = DEMOS.map(([id, name, lines, , c, sec], i) =>
-    C3.miniCart({ name, sec, c: 'var(' + c + ')', foot: [id + '.jsonl', lines + ' lines'], attrs: 'data-i="' + i + '"' })).join('');
+  function buildPicker() {
+    if (!picker) return;
+    picker.innerHTML = DEMOS.map((d) =>
+      C3.miniCart({ name: d.name, sec: d.secs, c: 'var(' + d.c + ')', foot: [d.file, d.lines + ' events'], attrs: 'data-id="' + d.id + '"' })).join('');
+  }
 
   const T = window.THREE;
   let renderer = null;
@@ -42,20 +42,43 @@
   // ---------------------------------------------------------------- tape state
   // played: share of the session on the right spool. It is the one source of truth: the spools, the screen and
   // the tape all read it. shuttle: -1 rewinding, +1 fast-forwarding. coast: tape inertia, in played per ms.
-  const S = { i: 0, played: 0, playing: false, shuttle: 0, coast: 0, dragging: false, skip: false, last: 0, D: null, active: -2 };
-  const sec = () => DEMOS[S.i][5];
+  const S = { played: 0, playing: false, shuttle: 0, coast: 0, dragging: false, skip: false, last: 0, D: null, active: -2 };
+  // current: the active tape's display info. A known demo (id set, fetched from demo-tapes/) or a custom one
+  // (id null: already parsed, handed in directly — loadCustom doesn't need demo-tapes or a fetch at all).
+  let current = null;
+  const sec = () => (current ? current.secs : 0);
   const DUR = () => (S.D ? S.D.DUR : sec() * 1000);
   const tNow = () => S.played * DUR();
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   const scr = $('scr'), scrMain = $('scrMain');
-  function select(i) {
-    S.i = i; S.played = 0; S.D = null; S.active = -2; S.shuttle = 0; S.coast = 0; setPlaying(false);
-    const [id, , , , c] = DEMOS[i];
-    document.documentElement.style.setProperty('--c', 'var(' + c + ')');
-    if (picker) [...picker.children].forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
-    if ($('go')) $('go').href = 'player.html?demo=' + id;   // the out-to-player key: not every page has one
-    if (R) R.load(i);
-    loadEvents(i);
+  function resetState() { S.played = 0; S.D = null; S.active = -2; S.shuttle = 0; S.coast = 0; setPlaying(false); }
+  function afterSelect() {
+    if (!current) { if (picker) [...picker.children].forEach((b) => b.setAttribute('aria-pressed', 'false')); return; }   // nothing to show
+    document.documentElement.style.setProperty('--c', 'var(' + current.c + ')');
+    if (picker) [...picker.children].forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === current.id)));
+    if ($('go')) $('go').href = STUDIO + (current.id ? '?demo=' + current.id : '');   // the out-to-studio key: not every page has one
+    if (R) R.load();
+  }
+  // the demo shelf's tapes are parsed up front (shared/demo-tapes.js), so picking one needs no fetch at all
+  function selectDemo(id) {
+    const d = DEMOS.find((x) => x.id === id) || DEMOS[0];
+    if (!d) { noDemos = true; current = null; resetState(); afterSelect(); return; }   // nothing to show at all
+    noDemos = false;
+    resetState();
+    current = { id: d.id, name: d.name, lines: d.lines, c: d.c, secs: d.secs };
+    afterSelect();
+    const D = derive(d.tape); D.tape = d.tape;
+    S.D = D; S.active = -2;
+  }
+  // a tape parsed elsewhere (file drop, file picker): no demo-tapes fetch, it's already in hand
+  function loadCustom(tape, meta) {
+    meta = meta || {};
+    noDemos = false;
+    resetState();
+    current = { id: null, name: meta.name || tape.title, lines: tape.events.length, c: meta.c || '--orange', secs: tape.duration / 1000 };
+    afterSelect();
+    const D = derive(tape); D.tape = tape;
+    S.D = D; S.active = -2;
   }
   function setPlaying(on) {
     S.playing = on; playBtn.classList.toggle('on', on); scr.classList.toggle('playing', on); document.querySelector('.deck').classList.toggle('playing', on);
@@ -95,17 +118,6 @@
     let bMax = 1; for (let k = 0; k < NB; k++) bMax = Math.max(bMax, bOut[k]);
     return { EV, DUR, N, NB, bOut, bKind, bMaxLog: Math.log1p(bMax) };
   }
-  async function loadEvents(i) {
-    const id = DEMOS[i][0];
-    try {
-      const r = await fetch('../../tapes/' + id + '.jsonl');
-      if (!r.ok) throw new Error(r.status);
-      const tape = window.parseTape(await r.text(), id + '.jsonl'), D = derive(tape);
-      D.tape = tape;   // the whole tape, for the page around the deck (the landing's "What's on the tape")
-      if (S.i === i) { S.D = D; S.active = -2; }
-    } catch (e) { if (S.i === i) { S.D = null; S.active = -2; } }
-  }
-
   // ---------- canvases
   const mk = (el) => ({ el, ctx: el.getContext('2d'), w: 0, h: 0, dpr: 1 });
   const VIZ = mk($('viz')), TP = mk($('tape'));
@@ -223,7 +235,7 @@
     for (let tt = Math.max(0, Math.floor(t0 / major) * major); tt <= b; tt += major) ctx.fillText(fmtClock(tt), Math.round(X(tt)) + 3, 12);
     if (!D) {
       ctx.fillStyle = COL.label; ctx.textBaseline = 'middle'; ctx.font = '700 10px "JetBrains Mono", ui-monospace, monospace';
-      ctx.fillText(location.protocol === 'file:' ? 'NO SIGNAL · SERVE OVER HTTP TO READ THE TAPE' : 'READING THE TAPE…', cx + 12, h / 2 + 6);
+      ctx.fillText(location.protocol === 'file:' ? 'NO SIGNAL · SERVE OVER HTTP TO READ THE TAPE' : noDemos ? 'NO TAPE · OPEN ONE OF YOUR OWN' : 'READING THE TAPE…', cx + 12, h / 2 + 6);
       return;
     }
     const top = 27, bot = h - 11, laneH = bot - top, hText = Math.round(laneH * 0.3);
@@ -254,8 +266,9 @@
     if (!D) {
       scr.dataset.kind = 'none'; scr.dataset.err = '0';
       $('scrKind').textContent = 'NO TAPE'; $('scrIdx').textContent = '---/---';
-      scrTitle.textContent = location.protocol === 'file:' ? 'No signal' : 'Reading the tape…';
-      scrBody.className = 'd5-body'; scrBody.textContent = location.protocol === 'file:' ? 'Serve this page over http to read the tape.' : '';
+      scrTitle.textContent = location.protocol === 'file:' ? 'No signal' : noDemos ? 'No tape' : 'Reading the tape…';
+      scrBody.className = 'd5-body';
+      scrBody.textContent = location.protocol === 'file:' ? 'Serve this page over http to read the tape.' : noDemos ? 'No demo tapes to show. Open one of your own.' : '';
       return;
     }
     const e = D.EV[i];
@@ -265,7 +278,7 @@
     scrTitle.textContent = eventTitle(e);
     if (e.kind === 'tool' || e.kind === 'thinking') { const d = document.createElement('span'); d.className = 'dur'; d.textContent = fmtMs(e.kind === 'tool' ? e.dur : e.span); scrTitle.appendChild(d); }
     scrBody.className = 'd5-body' + (e.kind === 'tool' ? ' mono' : '');
-    if (e.kind === 'thinking') scrBody.innerHTML = '<span class="dim">reasoning</span> <span class="think-dots"><i></i><i></i><i></i></span>';
+    if (e.kind === 'thinking') { if (e.text) scrBody.textContent = oneLine(e.text); else scrBody.innerHTML = '<span class="dim">Reasoning (not in the log)</span>'; }
     else if (e.kind === 'tool') scrBody.textContent = (e.tool === 'Bash' ? '$ ' : '') + oneLine(e.input);
     else scrBody.textContent = oneLine(e.text) || '…';
     if (animate && !reduce) { scrMain.classList.remove('swap'); void scrMain.offsetWidth; scrMain.classList.add('swap'); }
@@ -445,7 +458,7 @@
   if (picker) C3.tiltShelf(picker);
   if (picker) picker.addEventListener('click', (e) => {
     const b = e.target.closest('.mc-pick'); if (!b) return;
-    select(+b.dataset.i);
+    selectDemo(b.dataset.id);
     // bring the big cartridge back into view with its new tape
     if (stage.getBoundingClientRect().bottom < 80) stage.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   });
@@ -472,8 +485,22 @@
 
   let R = null;
   if (renderer) R = build3D();
-  select(DEMOS.findIndex((d) => d[0] === stage.dataset.demo) >= 0 ? DEMOS.findIndex((d) => d[0] === stage.dataset.demo) : 0);   // data-demo: the tape it starts with
   requestAnimationFrame(loop);
+  // the shelf's tapes (shared/demo-tapes.js); until the first one arrives the deck reads as loading, same as
+  // a demo tape that hasn't shown up yet (no D). The one this page starts with is fetched and parsed on its
+  // own (one() below) so it's playable as soon as it, alone, is ready — not after every other demo tape has
+  // also been parsed (parsing is synchronous; several multi-MB tapes queued behind it add up).
+  // `ready` lets a page around the deck (simple-player.js: ?demo=, a tape handed over) wait for the full shelf.
+  const startId = stage.dataset.demo;
+  if (window.VCRDemoTapes) window.VCRDemoTapes.one(BASE, startId).then((d) => {
+    if (d && !current) { DEMOS = [d]; selectDemo(d.id); }
+  });
+  const ready = (window.VCRDemoTapes ? window.VCRDemoTapes.list(BASE) : Promise.resolve([])).then((list) => {
+    if (list.length) DEMOS = list;
+    buildPicker();
+    if (!current) selectDemo(DEMOS.some((d) => d.id === startId) ? startId : (DEMOS[0] && DEMOS[0].id));
+    else afterSelect();   // the fast path above already picked one; just resync the shelf's pressed state and go-link
+  });
 
   // ---------------------------------------------------------------- 3D
   function build3D() {
@@ -512,14 +539,14 @@
     }
     new ResizeObserver(resize).observe(stage); resize();
 
-    // the label: the demo's name, length and size, in its colour
-    function load(i) {
-      const [, name, lines, size, cVar, secs] = DEMOS[i];
-      model.setLabel({ name, dur: fmtDur(secs), sub: lines + ' lines · ' + size + ' · sonnet 5', color: css(cVar) || '#FF5B1F' });
+    // the label: the tape's name, length and event count, in its colour
+    function load() {
+      const c = current;
+      model.setLabel({ name: c.name, dur: fmtDur(c.secs), sub: c.lines + ' events', color: css(c.c) || '#FF5B1F' });
     }
-    let prevI = -1;
+    let prevTape = null;
     function frame(ts) {
-      if (prevI !== S.i) { model.resetReel(); prevI = S.i; }
+      if (prevTape !== current) { model.resetReel(); prevTape = current; }
       model.setReel(sec(), S.played);
       if (!drag) {
         vel.x *= 0.92; vel.y *= 0.92;
@@ -567,5 +594,8 @@
   }
   // A handle for the page around the deck (landing-deck.js): the tape's state, seeking, and a call every frame.
   const frameHooks = [];
-  window.VCRCartridge = { S, DUR, speed, seek: (p) => { S.coast = 0; seek(p); }, onFrame: (fn) => frameHooks.push(fn) };
+  window.VCRCartridge = {
+    S, DUR, speed, seek: (p) => { S.coast = 0; seek(p); }, onFrame: (fn) => frameHooks.push(fn),
+    selectDemo, loadCustom, studioHref: () => STUDIO + (current && current.id ? '?demo=' + current.id : ''), ready,
+  };
 })();

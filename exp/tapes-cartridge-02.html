@@ -10,9 +10,9 @@
 <script>
   try { var th = localStorage.getItem('vcr-ds-theme'); if (th === 'dark' || th === 'light') document.documentElement.setAttribute('data-theme', th); } catch (e) {}
 </script>
-<link rel="stylesheet" href="landing.css">
-<link rel="stylesheet" href="cartridge.css">
-<link rel="stylesheet" href="shelf.css">
+<link rel="stylesheet" href="../landing.css">
+<link rel="stylesheet" href="../cartridge.css">
+<link rel="stylesheet" href="../shelf.css">
 <style>
   /* Exploration 02: one big data cartridge, the look of tapes-cartridge.html,
      built in 3D. A clear frosted shell with a window through both faces, so the
@@ -65,15 +65,16 @@
         </div>
         <div class="d5-knoblabels" id="knobLabels" aria-hidden="true"></div>
       </div>
-      <a class="go" id="go" href="player.html"><i class="led"></i>REPLAY IN PLAYER</a>
+      <a class="go" id="go" href="deck-studio.html"><i class="led"></i>OPEN IN STUDIO</a>
     </div>
   </div>
 
   <div class="mshelf" id="picker" role="group" aria-label="Demo tapes: load one into the big cartridge"></div>
 </main>
 <script src="../shared/parse-tape.js"></script>
+<script src="../shared/demo-tapes.js"></script>
 <script src="../vendor/three.min.js"></script>
-<script src="cart3d.js"></script>
-<script src="cartridge.js"></script>
+<script src="../cart3d.js"></script>
+<script src="../cartridge.js"></script>
 </body>
 </html>

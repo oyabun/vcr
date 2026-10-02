@@ -10,7 +10,7 @@
 <script>
   try { var th = localStorage.getItem('vcr-ds-theme'); if (th === 'dark' || th === 'light') document.documentElement.setAttribute('data-theme', th); } catch (e) {}
 </script>
-<link rel="stylesheet" href="landing.css">
+<link rel="stylesheet" href="../landing.css">
 <style>
   /* Exploration 01: the data cartridges (tapes-cartridge.html) in real 3D.
      The shell is a transmissive, rough MeshPhysicalMaterial, so the spool, roller
@@ -282,7 +282,7 @@
     tip.classList.toggle('on', !!hot);
   });
   cv.addEventListener('pointerleave', () => { hot = null; tip.classList.remove('on'); cv.classList.remove('hot'); mouse.x = mouse.y = 0; });
-  cv.addEventListener('click', (e) => { const c = pick(e); if (c) location.href = 'player.html?demo=' + c.userData.id; });
+  cv.addEventListener('click', (e) => { const c = pick(e); if (c) location.href = '../player.html?demo=' + c.userData.id; });
 
   // ---------------------------------------------------------------- loop
   const v = new T.Vector3();

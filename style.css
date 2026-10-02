@@ -859,7 +859,7 @@ body.resizing, body.resizing * { user-select: none !important; }
 .cta-key {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
   height: 52px; padding: 0 24px 0 20px; border-radius: var(--r-2);
-  background: var(--orange); color: #111; font: 700 17px/1 var(--f-ui); letter-spacing: -.01em; white-space: nowrap;
+  background: var(--orange); color: #fff; font: 700 17px/1 var(--f-ui); letter-spacing: -.01em; white-space: nowrap;
   box-shadow: 0 4px 0 #B8380C, 0 10px 20px -10px rgba(184, 56, 12, .6), inset 0 1px 0 rgba(255,255,255,.35);
   transition: transform .07s, box-shadow .07s;
 }

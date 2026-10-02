@@ -46,7 +46,7 @@
     invFor = S.D;
     const R = window.analyzeTape(S.D.tape), T = R.tokens;
     $('invTitle').textContent = R.title;
-    $('invLink').href = 'player.html?demo=' + encodeURIComponent(R.source.replace(/\.jsonl$/, '')) + '&view=report';
+    $('invLink').href = 'exp/deck-studio.html?demo=' + encodeURIComponent(R.source.replace(/\.jsonl$/, '')) + '&view=report';
     const list = (items) => items.length ? '<ul>' + items.map((x) => '<li>' + x + '</li>').join('') + '</ul>' : '';
     const none = (what) => '<p class="inv-none">' + what + '</p>';
     const card = (col, label, num, unit, body) => '<article class="inv-card" style="--k:var(' + col + ')"><p class="inv-lbl">' + label + '</p><p class="inv-num"><b class="dot">' + num + '</b>' + (unit ? '<span>' + unit + '</span>' : '') + '</p>' + body + '</article>';

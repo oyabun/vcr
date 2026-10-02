@@ -155,7 +155,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
 .cta-key {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   height: 52px; padding: 0 24px 0 20px; border-radius: var(--r-2); text-decoration: none;
-  background: var(--orange); color: #111; font: 700 17px/1 var(--f-ui); letter-spacing: -.01em; white-space: nowrap;
+  background: var(--orange); color: #fff; font: 700 17px/1 var(--f-ui); letter-spacing: -.01em; white-space: nowrap;
   box-shadow: 0 4px 0 #B8380C, 0 10px 20px -10px rgba(184, 56, 12, .6), inset 0 1px 0 rgba(255,255,255,.35);
   transition: transform .07s, box-shadow .07s;
 }
@@ -235,6 +235,9 @@ html, body { overflow-x: clip; }   /* the bleed never adds a sideways scroll */
 
 /* the demo deck's transport and speed, small, beside "Open a tape" (the keys from cartridge.css, scaled down) */
 .cart-keys { display: inline-flex; align-items: center; gap: 6px; height: 52px; padding: 0 10px; border-radius: var(--r-3); background: var(--body); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.45); }
+/* the same controls, having followed the scroll into the bar once the hero's own copy scrolls out of view */
+.bar .cart-keys { height: 42px; box-shadow: inset 0 0 0 1px var(--line-2); }
+.bar .cart-keys .pkey { height: 26px; }
 .cart-keys .keys { gap: 5px; }
 .cart-keys .pkey { width: 34px; height: 30px; border-radius: var(--r-1); box-shadow: 0 3px 0 var(--lip), inset 0 1px 0 var(--key-hi); }
 .cart-keys .pkey:active, .cart-keys .pkey.down { transform: translateY(2px); box-shadow: 0 1px 0 var(--lip), inset 0 1px 0 var(--key-hi); }
@@ -376,6 +379,8 @@ details[open] .pm::before, details[open] .pm::after { background: var(--orange);
 .ans { padding: 0 28px 26px; color: var(--ink-2); font-size: 15.5px; }
 .ans p { margin: 0 0 10px; max-width: 75ch; } .ans p:last-child { margin: 0; }   /* answers keep a readable line */
 .ans a { color: var(--ink); text-decoration-color: var(--orange); text-underline-offset: 3px; }
+.ans .os-paths { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+.ans .os-paths b { display: inline-block; min-width: 64px; color: var(--ink); font-weight: 600; }
 .ticks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 14px; margin: 4px 0 12px; padding: 0; list-style: none; font-size: 14px; }
 .ticks li::before { content: "■ "; color: var(--c-bash); filter: brightness(.8); }
 
@@ -406,6 +411,7 @@ details[open] .pm::before, details[open] .pm::after { background: var(--orange);
 }
 @media (max-width: 860px) {
   .nav { display: none; }
+  .bar .cart-keys { display: none; }   /* no room once the nav is already gone */
   .err-grid, .cli-grid { grid-template-columns: 1fr; }
   .track-head { grid-template-columns: 1fr; gap: 18px; }
   .track-no { width: 60px; height: 60px; font-size: 30px; }

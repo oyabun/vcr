@@ -1,6 +1,6 @@
 /* VCR Deck Studio: tape loading and the EJECT key.
    app.js reads window.TAPE once, so a tape is chosen here before app.js runs:
-     player.html?demo=<id>   fetches tapes/<id>.jsonl (needs http, not file://)
+     player.html?demo=<id>   fetches demo-tapes/<id>.jsonl (needs http, not file://)
      ejected                 no tape: an empty deck saying INSERT TAPE
      a tape you loaded       is kept in sessionStorage and picked up on reload
      otherwise               the sample baked into ../shared/tape.js
@@ -10,14 +10,9 @@
 (function () {
   'use strict';
   const KEY = 'vcr-ds-tape', EJECTED = 'vcr-ds-ejected';
-  // [id, title, colour, session length in seconds, lines]
-  const DEMOS = [
-    ['platform-game', 'Retro platformer game', '--orange', 9302, 487],
-    ['crush-game', 'Match-3 phone game', '--c-write', 2289, 520],
-    ['git-visor', 'Git archaeology visualizer', '--c-bash', 1929, 692],
-    ['marginalia-links', 'Link library & feed reader', '--c-read', 1962, 875],
-    ['orbit-watch', 'Real-time ISS tracker', '--c-text', 2922, 982],
-  ];
+  // the demo shelf's tapes: read from ../demo-tapes/ at runtime (shared/demo-tapes.js), not hardcoded here
+  const demos = () => (window.VCRDemoTapes ? window.VCRDemoTapes.list('../') : Promise.resolve([]));
+  const demo1 = (id) => (window.VCRDemoTapes ? window.VCRDemoTapes.one('../', id) : Promise.resolve(null));
   const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   const fmtDur = (sec) => { const m = Math.round(sec / 60); return m >= 60 ? Math.floor(m / 60) + 'h ' + String(m % 60).padStart(2, '0') + 'm' : m + ' min'; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -36,28 +31,22 @@
     // price it with today's rates (a stored tape, or the baked sample, was priced when it was made)
     if (window.TAPE && window.tapePricing) window.tapePricing.recost(window.TAPE);
     const s = document.createElement('script');
-    s.src = 'app.js';
+    s.src = '../app.js';
     s.onload = () => {
       addEjectKey();
-      load('book.js');   // the book layout, built on the player
-      load('bay.js');    // the tape bay: the tape in 3D, above the inspector
+      load('../book.js');   // the book layout, built on the player
+      load('../bay.js');    // the tape bay: the tape in 3D, above the inspector
     };
     document.body.appendChild(s);
   }
   async function boot() {
     const demo = new URLSearchParams(location.search).get('demo');
     if (demo && /^[a-z0-9-]+$/i.test(demo)) {
-      const d = DEMOS.find((x) => x[0] === demo);
-      if (d) window.VCR_TAPE_COLOR = d[2];   // the bay's label in the demo's colour
-      try {
-        const r = await fetch('../../tapes/' + demo + '.jsonl');
-        if (!r.ok) throw new Error(r.status);
-        return start(window.parseTape(await r.text(), demo + '.jsonl'));
-      } catch (e) {
-        return emptyDeck('Couldn’t load the demo tape “' + demo + '”' + (location.protocol === 'file:' ? ': demos need the page served over http.' : '.'));
-      }
+      const d = await demo1(demo);   // fetched and parsed on its own: the rest of the shelf doesn't hold this up
+      if (d) { window.VCR_TAPE_COLOR = d.c; return start(d.tape); }
+      return emptyDeck('Couldn’t load the demo tape “' + demo + '”' + (location.protocol === 'file:' ? ': demos need the page served over http.' : '.'), await demos());
     }
-    if (ss.get(EJECTED)) return emptyDeck();
+    if (ss.get(EJECTED)) return emptyDeck(null, await demos());
     const saved = ss.get(KEY);
     if (saved) { try { return start(JSON.parse(saved)); } catch (e) { ss.del(KEY); } }
     start();
@@ -83,10 +72,10 @@
     };
     rd.readAsText(file);
   }
-  function loadDemo(id) {
-    const [, name, c, secs, lines] = DEMOS.find((d) => d[0] === id);
+  function loadDemo(d) {
     ss.del(EJECTED);
-    through({ name, dur: fmtDur(secs), secs, sub: lines + ' lines · ' + id + '.jsonl', color: css(c) }, () => { location.href = here + '?demo=' + encodeURIComponent(id); });
+    through({ name: d.name, dur: fmtDur(d.secs), secs: d.secs, sub: d.lines + ' events · ' + d.file, color: css(d.c) },
+      () => { location.href = here + '?demo=' + encodeURIComponent(d.id); });
   }
   function loadSample() {
     const t = window.TAPE, secs = t ? t.duration / 1000 : 0;
@@ -135,14 +124,15 @@
   const EJECT_ICON = '<svg viewBox="0 0 20 20"><path d="M10 4.5 4.5 11h11z" fill="currentColor" stroke="none"/><path d="M4.5 14.5h11"/></svg>';
 
   /* ---------- no tape: the empty deck ---------- */
-  function emptyDeck(error) {
+  function emptyDeck(error, list) {
+    list = list || [];
     document.getElementById('app').hidden = true;
     const key = (cls, label, svg, attrs) => '<button class="key ' + cls + '" aria-label="' + label + '" ' + (attrs || 'disabled') + '>' + svg + '</button>';
     const deck = document.createElement('div');
     deck.className = 'empty-deck'; deck.id = 'emptyDeck';
     deck.innerHTML =
       '<header class="topbar">' +
-        '<div class="brand" aria-label="VCR Deck Studio"><span class=\"mk\" aria-hidden=\"true\"><i class=\"sp\"></i><i class=\"st\"></i></span>vcr<span class="brand-sub">DECK STUDIO</span></div>' +
+        '<a class="brand" href="../player.html" aria-label="Back to the player"><span class=\"mk\" aria-hidden=\"true\"><i class=\"sp\"></i><i class=\"st\"></i></span>vcr<span class="brand-sub">DECK STUDIO</span></a>' +
         '<div class="tape-label"><span class="tape-title">No tape</span><span class="tape-meta">Ejected</span></div>' +
         '<button class="mini-key theme-key" id="edTheme" aria-label="Toggle theme">' +
           '<svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>' +
@@ -161,7 +151,9 @@
             '<button class="tog-key big" id="edSample"><i class="led on"></i>SAMPLE</button>' +
           '</div>' +
           '<p class="ed-err" id="edErr" role="alert"' + (error ? '' : ' hidden') + '>' + esc(error || '') + '</p>' +
-          '<p class="ed-note">Claude Code keeps sessions in <code>~/.claude/projects/</code>. The file is read in this page; nothing is uploaded.</p>' +
+          '<p class="ed-note">Claude Code keeps sessions under <code>.claude/projects/</code> in your home folder: ' +
+            '<code>/Users/you/.claude/projects/</code> on macOS, <code>/home/you/.claude/projects/</code> on Linux, ' +
+            '<code>C:\\Users\\you\\.claude\\projects\\</code> on Windows. The file is read in this page; nothing is uploaded.</p>' +
         '</section>' +
         '<div class="ed-transport">' +
           '<div class="keys">' +
@@ -176,11 +168,12 @@
         '</div>' +
         '<div class="ed-shelf">' +
           '<div class="ed-h">DEMO TAPES</div>' +
+          (!list.length ? '<p class="ed-sub">No demo tapes to show. Open one of your own.</p>' :
           // the demo tapes as small cartridges (cart3d.js, shelf.css), or as black label chips without it
-          (window.VCRCart3D
-            ? '<div class="ed-demos mshelf">' + DEMOS.map(([id, name, c, sec, lines]) => window.VCRCart3D.miniCart({ name, sec, c: 'var(' + c + ')', foot: [id + '.jsonl', lines + ' lines'], attrs: 'data-demo="' + id + '"' })).join('') + '</div>'
-            : '<div class="ed-demos">' + DEMOS.map(([id, name, c, sec]) =>
-              '<button class="ed-tape" style="--c:var(' + c + ')" data-demo="' + id + '"><b>' + esc(name) + '</b><small>' + fmtDur(sec) + ' · ' + id + '.jsonl</small></button>').join('') + '</div>') +
+          window.VCRCart3D
+            ? '<div class="ed-demos mshelf">' + list.map((d) => window.VCRCart3D.miniCart({ name: d.name, sec: d.secs, c: 'var(' + d.c + ')', foot: [d.file, d.lines + ' events'], attrs: 'data-demo="' + d.id + '"' })).join('') + '</div>'
+            : '<div class="ed-demos">' + list.map((d) =>
+              '<button class="ed-tape" style="--c:var(' + d.c + ')" data-demo="' + d.id + '"><b>' + esc(d.name) + '</b><small>' + fmtDur(d.secs) + ' · ' + d.file + '</small></button>').join('') + '</div>') +
         '</div>' +
       '</main>';
     document.body.appendChild(deck);
@@ -192,13 +185,13 @@
     deck.querySelector('#edEject').addEventListener('click', () => file.click());
     deck.querySelector('#edSample').addEventListener('click', loadSample);
     const shelf = deck.querySelector('.ed-demos');
-    shelf.addEventListener('click', (e) => {
+    if (shelf) shelf.addEventListener('click', (e) => {
       const b = e.target.closest('[data-demo]'); if (!b) return;
       shelf.querySelectorAll('[data-demo]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
       if (drive) deck.querySelector('#edDrive').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' });
-      loadDemo(b.dataset.demo);
+      const d = list.find((x) => x.id === b.dataset.demo); if (d) loadDemo(d);
     });
-    if (window.VCRCart3D && shelf.classList.contains('mshelf')) window.VCRCart3D.tiltShelf(shelf);
+    if (shelf && window.VCRCart3D && shelf.classList.contains('mshelf')) window.VCRCart3D.tiltShelf(shelf);
     // the drive: the 3D deck waiting for a tape. Its LCD says INSERT TAPE, so the screen's big words step aside
     const host = deck.querySelector('#edDrive');
     host.hidden = false;

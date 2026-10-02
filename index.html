@@ -26,7 +26,6 @@
     <a class="seg-btn" href="#review">Review</a>
     <a class="seg-btn" href="#timeline">Timeline</a>
     <a class="seg-btn" href="#errors">Errors</a>
-    <a class="seg-btn" href="#cli">Terminal</a>
     <a class="seg-btn" href="#faq">FAQ</a>
   </nav>
   <span class="grow"></span>
@@ -95,21 +94,6 @@
     </figure>
   </section>
 
-  <!-- ───────────── Track 01: what's on the tape ───────────── -->
-  <section class="track" id="review">
-    <header class="track-head">
-      <span class="track-no dot">01</span>
-      <div>
-        <p class="eyebrow">TRACK 01 · WHAT'S ON THE TAPE</p>
-        <h2>Everything your agent did, ready to review.</h2>
-        <p class="sub">The session log your agent already wrote holds the whole story. VCR lays it out: what you asked, what it said and thought, every command it ran and file it touched, the URLs it reached, the skills and MCP servers it called, every error, and what it all cost. All of it in the player's Report, a click away from the moment it happened.</p>
-      </div>
-    </header>
-    <!-- live from the tape in the hero (landing-deck.js, alt/shared/tape-report.js) -->
-    <p class="inv-note"><span>Live from the demo tape in the deck below: <b id="invTitle">…</b></span><a class="inv-link" id="invLink" href="player.html?view=report">See its full report in the player ↗</a></p>
-    <div class="inv" id="inventory" aria-live="polite"></div>
-  </section>
-
   <!-- the deck that plays the tape in the hero -->
   <section class="hero-deck" aria-label="Play the demo tape">
     <div class="deck">
@@ -126,6 +110,21 @@
       </div>
       </div>
     </div>
+  </section>
+
+  <!-- ───────────── Track 01: what's on the tape ───────────── -->
+  <section class="track" id="review">
+    <header class="track-head">
+      <span class="track-no dot">01</span>
+      <div>
+        <p class="eyebrow">TRACK 01 · WHAT'S ON THE TAPE</p>
+        <h2>Everything your agent did, ready to review.</h2>
+        <p class="sub">The session log your agent already wrote holds the whole story. VCR lays it out: what you asked, what it said and thought, every command it ran and file it touched, the URLs it reached, the skills and MCP servers it called, every error, and what it all cost. All of it in the studio's Report, a click away from the moment it happened.</p>
+      </div>
+    </header>
+    <!-- live from the tape in the hero (landing-deck.js, alt/shared/tape-report.js) -->
+    <p class="inv-note"><span>Live from the demo tape in the deck above: <b id="invTitle">…</b></span><a class="inv-link" id="invLink" href="exp/deck-studio.html?view=report">See its full report in the studio ↗</a></p>
+    <div class="inv" id="inventory" aria-live="polite"></div>
   </section>
 
   <!-- ───────────── Track 02: on the timeline ───────────── -->
@@ -181,103 +180,12 @@
     </div>
   </section>
 
-  <!-- ───────────── Track 04: terminal ───────────── -->
-  <section class="track" id="cli">
+  <!-- ───────────── Track 04: FAQ ───────────── -->
+  <section class="track" id="faq">
     <header class="track-head">
       <span class="track-no dot">04</span>
       <div>
-        <p class="eyebrow">TRACK 04 · IN THE TERMINAL</p>
-        <h2>The same tools and more, from the command line.</h2>
-        <p class="sub">One binary. No server, nothing uploaded. Same sessions the browser reads, over SSH, inside a container, wherever you're already working.</p>
-      </div>
-    </header>
-
-    <div class="cli-grid">
-      <div class="cmd-list" role="tablist" aria-label="Commands">
-        <button class="cmd on" role="tab" aria-selected="true" data-pane="vcr"><b>vcr</b><span>The bare command: a banner and where every subcommand lives.</span></button>
-        <button class="cmd" role="tab" aria-selected="false" data-pane="ls"><b>vcr ls</b><span>Every session vcr can find, across agents, newest first.</span></button>
-        <button class="cmd" role="tab" aria-selected="false" data-pane="stats"><b>vcr stats</b><span>The full digest for one session: cost, tokens, tool time, dead air.</span></button>
-        <button class="cmd" role="tab" aria-selected="false" data-pane="replay"><b>vcr replay</b><span>The same three-column workspace as the browser, sized to your terminal.</span></button>
-        <button class="cmd" role="tab" aria-selected="false" data-pane="watch"><b>vcr watch</b><span>Follows a live session and calls out trouble as it happens.</span></button>
-        <div class="cli-install">
-          <code>go install github.com/jalonsogo/VCR/cli@latest</code>
-          <button class="tog-key sm" data-copy="go install github.com/jalonsogo/VCR/cli@latest">COPY</button>
-        </div>
-      </div>
-
-      <div class="term" aria-live="polite">
-        <div class="term-bar"><span class="dots"><i></i><i></i><i></i></span><span class="dot">~/code — vcr</span></div>
-<pre class="pane on" data-pane="vcr"><span class="pr">$</span> vcr
-
-  <span class="o">┌─────┐</span>
-  <span class="o">│ ● ■ │</span>  <b>vcr</b>
-  <span class="o">└─────┘</span>
-  Replay, inspect and watch AI coding sessions:
-  Claude Code, Codex, more soon.
-
-  <span class="h">USAGE</span>
-    vcr &lt;command&gt; [session]
-
-  <span class="h">COMMANDS</span>
-    <b>ls</b>       list every session vcr can find
-    <b>stats</b>    the full digest for one session
-    <b>replay</b>   the three-column workspace, in your terminal
-    <b>watch</b>    follow a live session, flag trouble as it happens
-
-  <span class="m">vcr &lt;command&gt; --help for more on each one.</span></pre>
-<pre class="pane" data-pane="ls"><span class="pr">$</span> vcr ls
-
-  <span class="h">AGENT        SESSION       STARTED     DUR       TOOLS</span>
-  Claude Code  1c0de456  <span class="o">●</span>  12:14       15m 10s     24
-  Claude Code  8ab21f90     09:02       41m 22s    118
-  Codex        rollout-2f7c Yesterday   6m 04s     19
-<span class="cur">▌</span></pre>
-<pre class="pane" data-pane="stats"><span class="pr">$</span> vcr stats 1c0de456
-  <span class="m">──────────────────────────────────────────────</span>
-  Duration   15m 10s          Cost  <b>$5.15</b>
-  Tokens     978.0k in · 3.0k out · 373.4k cache read
-  Activity   1 prompts · 25 responses · 24 tool calls
-  Tool time  3m 20s  <span class="m">(30% of wall time)</span>
-  Dead air   7m 40s  <span class="m">(70%) across 11 gaps</span>
-  Errors     <span class="e">2</span>
-
-  <span class="h">TOOL       CALLS  ERR    TIME  SHARE</span>
-  Bash       9  <span class="e">  2</span>  1m 42s  <span class="o">████████████</span><span class="m">████████</span>
-  Edit       6    0     48s  <span class="o">██████</span><span class="m">██████████████</span>
-  Grep       5    0     31s  <span class="o">████</span><span class="m">████████████████</span>
-  Read       4    0     19s  <span class="o">██</span><span class="m">██████████████████</span>
-<span class="cur">▌</span></pre>
-<pre class="pane" data-pane="replay"><span class="pr">$</span> vcr replay 1c0de456
-  <span class="h">SESSION  SCRIPT  TASK  LOG  STATS</span>               <span class="o">● FOLLOW</span>
-  <span class="o">▶</span> 09:00:00  <span class="o">PROMPT</span>  Refactor the auth middleware
-    09:01:00  CLAUDE  → Bash
-    09:01:00  <span class="g">BASH</span>    go test ./...
-    09:02:00  <span class="g">GREP</span>    guard
-    09:03:00  <span class="g">EDIT</span>    guard
-    09:05:00  <span class="g">BASH</span>    go test ./...  <span class="e">◆ exit 1</span>
-
-  <span class="h">REPLAY</span>   |◀  ◀◀  <span class="o">▶</span>  ▶▶  ▶|    1× 2× <span class="o">10×</span> 60×   ○ SKIP DEAD AIR
-  PROMPT     <span class="o">■</span>
-  BASH       ·· <span class="g">■■</span> ······ <span class="g">■</span> ····· <span class="e">■</span> ···
-  EDIT       ········ <span class="g">■■■</span> ··········
-  <span class="m">tab · q</span></pre>
-<pre class="pane" data-pane="watch"><span class="pr">$</span> vcr watch
-  12:20:08  <span class="e">WARN</span>  tool-errors  3 tool calls failed in a row
-  12:22:15  <span class="e">WARN</span>  context      context 88% full (176,336 of 200,000)
-                         <span class="m">a compaction is coming, anything not written</span>
-                         <span class="m">down is about to be summarised away</span>
-  12:24:41  <span class="o">INFO</span>  cache-cold   prompt cache missed on 133,363 tokens
-<span class="cur">▌</span></pre>
-      </div>
-    </div>
-  </section>
-
-  <!-- ───────────── Track 05: FAQ ───────────── -->
-  <section class="track" id="faq">
-    <header class="track-head">
-      <span class="track-no dot">05</span>
-      <div>
-        <p class="eyebrow">TRACK 05 · FREQUENTLY ASKED</p>
+        <p class="eyebrow">TRACK 04 · FREQUENTLY ASKED</p>
         <h2>Questions, answered.</h2>
       </div>
     </header>
@@ -315,7 +223,15 @@
       </details>
       <details>
         <summary>Where does it find my session logs?<i class="pm" aria-hidden="true"></i></summary>
-        <div class="ans"><p>It doesn't go looking. You hand it one. Claude Code writes to <code>~/.claude/projects/</code>, Codex to <code>~/.codex/sessions/</code>.</p></div>
+        <div class="ans">
+          <p>It doesn't go looking. You hand it one. Claude Code writes each session as a <code>.jsonl</code> file under <code>~/.claude/projects/</code>, one subfolder per project, named for the session:</p>
+          <ul class="os-paths">
+            <li><b>macOS</b> <code>/Users/you/.claude/projects/</code></li>
+            <li><b>Linux</b> <code>/home/you/.claude/projects/</code></li>
+            <li><b>Windows</b> <code>C:\Users\you\.claude\projects\</code> (or paste <code>%USERPROFILE%\.claude\projects</code> into Explorer's address bar)</li>
+          </ul>
+          <p>Codex writes to the same <code>~/.codex/sessions/</code> spot on each OS.</p>
+        </div>
       </details>
       <details>
         <summary>Do I need to install anything?<i class="pm" aria-hidden="true"></i></summary>
@@ -352,8 +268,9 @@
 
 <script src="vendor/three.min.js"></script>
 <script src="landing.js"></script>
-<script src="../shared/parse-tape.js"></script>
-<script src="../shared/tape-report.js"></script>
+<script src="shared/parse-tape.js"></script>
+<script src="shared/demo-tapes.js"></script>
+<script src="shared/tape-report.js"></script>
 <script src="cart3d.js"></script>
 <script src="cartridge.js"></script>
 <script src="landing-deck.js"></script>

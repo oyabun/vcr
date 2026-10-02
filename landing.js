@@ -55,7 +55,8 @@
       try { tape = window.parseTape(rd.result, file.name); } catch (err) { toast('Not a session log: ' + file.name); return; }
       try { sessionStorage.setItem(TAPE_KEY, JSON.stringify(tape)); sessionStorage.removeItem(EJECTED_KEY); }
       catch (err) { toast('That tape is too big to hand to the player'); return; }
-      location.href = 'player.html';
+      // the player's AUTO-STUDIO switch: on, it jumps straight to the studio instead of previewing it there
+      location.href = (localStorage.getItem('vcr-open-mode') || 'preview') === 'studio' ? 'exp/deck-studio.html' : 'player.html';
     };
     rd.readAsText(file);
   });
@@ -129,11 +130,35 @@
     panes.forEach((p) => p.classList.toggle('on', p.dataset.pane === id));
   }
   cmds.forEach((c) => c.addEventListener('click', () => showPane(c.dataset.pane)));
-  document.querySelector('.cmd-list').addEventListener('keydown', (e) => {
+  const cmdList = document.querySelector('.cmd-list');   // the CLI section is out for now (index.html)
+  if (cmdList) cmdList.addEventListener('keydown', (e) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
     const i = cmds.findIndex((c) => c.classList.contains('on')), n = cmds[(i + (e.key === 'ArrowDown' ? 1 : cmds.length - 1)) % cmds.length];
     e.preventDefault(); n.focus(); showPane(n.dataset.pane);
   });
+
+  /* ---------------- the hero's transport controls follow you into the bar ----------------
+     Once .cart-keys scrolls out from under the sticky bar, its exact node (not a copy: cartridge.js
+     found it by id, and moving a node keeps every listener on it) moves into the bar, before the
+     "Open a tape" key; scrolling back up puts it right back where it was. */
+  (function followControlsIntoBar() {
+    const keys = document.querySelector('.cart-keys'), bar = $('bar');
+    if (!keys || !bar || !('IntersectionObserver' in window)) return;
+    const home = keys.parentNode;
+    // a fixed marker at the controls' own spot: once they move into the (sticky, always-visible) bar, their
+    // own position no longer says anything about scroll, so what's watched is this marker, left behind.
+    const anchor = document.createElement('span');
+    anchor.setAttribute('aria-hidden', 'true');
+    home.insertBefore(anchor, keys);
+    const barCta = bar.querySelector('[data-open-tape]');
+    let inBar = false;
+    new IntersectionObserver(([en]) => {
+      const wantInBar = !en.isIntersecting;
+      if (wantInBar === inBar) return;   // already where it should be
+      inBar = wantInBar;
+      if (inBar) bar.insertBefore(keys, barCta); else home.insertBefore(keys, anchor.nextSibling);
+    }, { rootMargin: '-78px 0px 0px 0px' }).observe(anchor);   // -78px: roughly the sticky bar's own height
+  })();
 
   /* ---------------- nav: light the section you're in ---------------- */
   const navLinks = [...document.querySelectorAll('.nav .seg-btn')];
@@ -141,7 +166,7 @@
     const io = new IntersectionObserver((ens) => ens.forEach((en) => {
       if (en.isIntersecting) navLinks.forEach((a) => a.classList.toggle('on', a.getAttribute('href') === '#' + en.target.id));
     }), { rootMargin: '-45% 0px -50% 0px' });
-    ['review', 'timeline', 'errors', 'cli', 'faq'].forEach((id) => io.observe($(id)));
+    ['review', 'timeline', 'errors', 'faq'].forEach((id) => io.observe($(id)));
   }
 
 })();

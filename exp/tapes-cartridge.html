@@ -10,7 +10,7 @@
 <script>
   try { var th = localStorage.getItem('vcr-ds-theme'); if (th === 'dark' || th === 'light') document.documentElement.setAttribute('data-theme', th); } catch (e) {}
 </script>
-<link rel="stylesheet" href="landing.css">
+<link rel="stylesheet" href="../landing.css">
 <style>
   /* Exploration: the demo tapes as QIC-style data cartridges. A frosted clear
      shell you see the works through (one spool, the capstan, the tape run),
@@ -156,7 +156,7 @@
     ['orbit-watch', 'Real-time ISS tracker', 982, '5.9MB', '--c-text', 0.6],
   ];
   const cart = ([id, name, lines, size, c, w]) =>
-    '<a class="cart-link" style="--c:var(' + c + ');--w:' + w + '" href="player.html?demo=' + id + '">' +
+    '<a class="cart-link" style="--c:var(' + c + ');--w:' + w + '" href="../player.html?demo=' + id + '">' +
       '<span class="cart">' +
         '<span class="q-works">' +
           '<i class="q-rib"></i>' +
