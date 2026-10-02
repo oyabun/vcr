@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>VCR — Rewind the work</title>
+<meta name="description" content="Drop in the session log your coding agent already wrote and replay every prompt, tool call, token and dollar on a timeline you can scrub.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@700;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  // Same key as the player, so the theme carries over when you open a tape.
+  try { var th = localStorage.getItem('vcr-ds-theme'); if (th === 'dark' || th === 'light') document.documentElement.setAttribute('data-theme', th); } catch (e) {}
+</script>
+<link rel="stylesheet" href="landing.css">
+<link rel="stylesheet" href="cartridge.css">
+<link rel="stylesheet" href="shelf.css">
+</head>
+<body>
+
+<!-- ───────────── Top bar ───────────── -->
+<header class="bar" id="bar">
+  <a class="brand" href="#top" aria-label="VCR home"><span class="mk" aria-hidden="true"><i class="sp"></i><i class="st"></i></span>vcr</a>
+  <nav class="seg nav" aria-label="Sections">
+    <a class="seg-btn" href="#review">Review</a>
+    <a class="seg-btn" href="#timeline">Timeline</a>
+    <a class="seg-btn" href="#errors">Errors</a>
+    <a class="seg-btn" href="#cli">Terminal</a>
+    <a class="seg-btn" href="#faq">FAQ</a>
+  </nav>
+  <span class="grow"></span>
+  <a class="mini-key" href="https://github.com/jalonsogo/VCR" aria-label="GitHub repository" title="GitHub">
+    <svg viewBox="0 0 24 24" class="fill"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>
+  </a>
+  <button class="mini-key theme-key" id="btnTheme" aria-label="Toggle theme" title="Toggle theme (T)">
+    <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+    <svg class="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+  </button>
+  <a class="cta-key sm" href="player.html" data-open-tape>Open a tape</a>
+</header>
+
+<main id="top">
+
+  <!-- ───────────── Hero ───────────── -->
+  <section class="hero">
+    <div class="hero-copy">
+      <!-- the tape's status, from the deck below (landing-deck.js) -->
+      <p class="eyebrow hero-status" id="heroStatus" data-state="pause"><span class="rec-dot"></span><span id="heroState">PAUSED</span> · TRACK 00</p>
+      <h1 class="hero-title">Rewind the work behind <br>your
+        <span class="agent-slot" id="agentSlot" aria-live="polite" aria-label="CLAUDE CODE">
+          <canvas class="agent-logo" id="agentLogo" aria-hidden="true"></canvas><span class="dot" id="agentName">CLAUDE CODE</span>
+        </span>
+        agent.
+      </h1>
+      <p class="lede">Going YOLO doesn't need to be blind. Drop in the session log your agent already wrote and replay every prompt, tool call, token and dollar, on its own clock, on a timeline you can scrub, with every error marked where it happened.</p>
+      <div class="cta-row">
+        <a class="cta-key" href="player.html" data-open-tape>
+          <svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Open a tape
+        </a>
+        <!-- the demo deck's transport and speed, small, beside the main action (cartridge.js finds them by id) -->
+        <div class="cart-keys" role="group" aria-label="Play the demo tape">
+      <div class="keys">
+        <button class="pkey sm" id="startBtn" aria-label="Go to start" title="Go to start (Home)"><svg viewBox="0 0 24 24"><path d="M5 5h2.5v14H5zM19 5.5v13L9 12z"/></svg></button>
+        <button class="pkey" id="rewBtn" aria-label="Previous event, hold to rewind" title="Tap: previous event · hold: rewind (←)"><svg viewBox="0 0 24 24"><path d="M11 6 3 12l8 6V6zm10 0-8 6 8 6V6z"/></svg></button>
+        <button class="pkey play" id="playBtn" aria-label="Play" title="Play / pause (Space)">
+          <svg class="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>
+          <svg class="i-pause" viewBox="0 0 24 24"><path d="M6 4.5h4.5v15H6zM13.5 4.5H18v15h-4.5z"/></svg>
+        </button>
+        <button class="pkey" id="ffBtn" aria-label="Next event, hold to fast-forward" title="Tap: next event · hold: fast-forward (→)"><svg viewBox="0 0 24 24"><path d="M13 6l8 6-8 6V6zM3 6l8 6-8 6V6z"/></svg></button>
+        <button class="pkey sm" id="endBtn" aria-label="Go to end" title="Go to end (End)"><svg viewBox="0 0 24 24"><path d="M16.5 5H19v14h-2.5zM5 5.5v13L15 12z"/></svg></button>
+      </div>
+      <div class="speed-menu">
+        <button class="speed-btn" id="speedBtn" aria-haspopup="true" aria-expanded="false" aria-controls="speedPop" title="Speed and skip idle">
+          <span class="speed-lbl">SPEED</span><b class="dot" id="speedBtnVal">30×</b><i class="caret" aria-hidden="true"></i>
+        </button>
+        <div class="speed-pop" id="speedPop" role="group" aria-label="Playback speed and skip idle" hidden>
+          <div class="speed-row">
+            <button class="pkey sm" id="speedDown" aria-label="Slower" title="Slower">−</button>
+            <span class="speed-val dot" id="speedVal" aria-live="polite">30×</span>
+            <button class="pkey sm" id="speedUp" aria-label="Faster" title="Faster">+</button>
+          </div>
+          <button class="tog-key" id="skipBtn" aria-pressed="false" title="Jump over the silences while playing"><i class="led"></i>SKIP IDLE</button>
+        </div>
+      </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- a demo tape in 3D: drag to turn it; the deck below plays it (cartridge.js) -->
+    <figure class="cart-stage hero-cart" id="stage" data-demo="orbit-watch" data-keys="deck" data-fit="tight">
+      <canvas id="cv" aria-label="A 3D data cartridge holding a demo session. Drag to turn it."></canvas>
+      <p class="cart-hint">Drag to turn · double-click to face it</p>
+      <p class="cart-fallback"><span>This browser can&rsquo;t draw 3D. <a href="player.html">Open the player</a> instead.</span></p>
+    </figure>
+  </section>
+
+  <!-- ───────────── Track 01: what's on the tape ───────────── -->
+  <section class="track" id="review">
+    <header class="track-head">
+      <span class="track-no dot">01</span>
+      <div>
+        <p class="eyebrow">TRACK 01 · WHAT'S ON THE TAPE</p>
+        <h2>Everything your agent did, ready to review.</h2>
+        <p class="sub">The session log your agent already wrote holds the whole story. VCR lays it out: what you asked, what it said and thought, every command it ran and file it touched, the URLs it reached, the skills and MCP servers it called, every error, and what it all cost. All of it in the player's Report, a click away from the moment it happened.</p>
+      </div>
+    </header>
+    <!-- live from the tape in the hero (landing-deck.js, alt/shared/tape-report.js) -->
+    <p class="inv-note"><span>Live from the demo tape in the deck below: <b id="invTitle">…</b></span><a class="inv-link" id="invLink" href="player.html?view=report">See its full report in the player ↗</a></p>
+    <div class="inv" id="inventory" aria-live="polite"></div>
+  </section>
+
+  <!-- the deck that plays the tape in the hero -->
+  <section class="hero-deck" aria-label="Play the demo tape">
+    <div class="deck">
+      <div class="d5-screen" id="scr" data-kind="none" aria-live="off">
+        <div class="d5-top"><span class="d5-kind" id="scrKind">NO TAPE</span><span class="d5-idx dot" id="scrIdx">---/---</span><span class="d5-gap"></span><span class="d5-state dot" id="scrState">❚❚</span></div>
+        <div class="d5-clock dot"><span id="scrClock">00:00</span><span class="d5-total" id="scrTotal">/00:00</span></div>
+        <div class="d5-main" id="scrMain"><div class="d5-title" id="scrTitle">—</div><div class="d5-body" id="scrBody"></div><div class="d5-run"><i id="scrRun"></i></div></div>
+        <div class="d5-tapewrap">
+          <canvas class="d5-tape" id="tape" role="slider" tabindex="0" aria-label="Tape. Drag it, or use the arrow keys" aria-valuemin="0" aria-valuemax="100"></canvas>
+          <div class="d5-playhead" aria-hidden="true"></div>
+        </div>
+        <canvas class="d5-viz" id="viz" aria-label="Output tokens per 6 seconds. Hover a column for details."></canvas>
+        <div class="d5-tip" id="vizTip" role="tooltip" hidden></div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── Track 02: on the timeline ───────────── -->
+  <section class="track" id="timeline">
+    <header class="track-head">
+      <span class="track-no dot">02</span>
+      <div>
+        <p class="eyebrow">TRACK 02 · ON THE TIMELINE</p>
+        <h2>Every lane, on the session's own clock.</h2>
+        <p class="sub">The player lays it all out as lanes, the way an editor lays out tracks: one row per kind of event, so you see what the agent was doing and when at a glance. Scrub it, zoom it, hide what you don't need.</p>
+      </div>
+    </header>
+
+    <!-- the player's lanes and its tape, following the tape in the hero (landing-deck.js) -->
+    <figure class="lanes" id="lanes">
+      <canvas id="lanesCv" role="slider" tabindex="0" aria-label="The demo session's lanes and tape. Click to seek." aria-valuemin="0" aria-valuemax="100"></canvas>
+      <figcaption><span>The demo tape in the deck above, as the player shows it: lit once played, dim ahead of the playhead</span><span>Click a lane's name to hide it · click a lane or the tape to seek</span></figcaption>
+    </figure>
+
+    <!-- demo tapes -->
+    <div class="shelf-head">
+      <h3 class="shelf-title">Demo tapes</h3>
+      <p>Five real recordings, each from a single one-shot prompt. Nothing edited out. Pick one to load it into the deck.</p>
+    </div>
+    <!-- the demo tapes as small cartridges: one loads into the deck above (cartridge.js builds them) -->
+    <div class="mshelf" id="picker" role="group" aria-label="Demo tapes: load one into the deck above"></div>
+  </section>
+
+  <!-- ───────────── Track 03: errors ───────────── -->
+  <section class="track" id="errors">
+    <header class="track-head">
+      <span class="track-no dot">03</span>
+      <div>
+        <p class="eyebrow">TRACK 03 · WHAT WENT WRONG</p>
+        <h2>Every failed call, marked where it happened.</h2>
+      </div>
+    </header>
+
+    <div class="err-grid">
+      <article class="err-lead">
+        <p class="eyebrow err">◆ NOTHING FAILS QUIETLY</p>
+        <h3>A tool call that comes back with a non-zero exit doesn't get to hide in a page of scroll.</h3>
+        <p>Every error, timeout and retry is flagged inline: in the transcript, on the timeline, and in a tool-by-tool table with call counts, error counts and time spent. Three failed <code>Bash</code> calls in a row read as three failures, not as noise.</p>
+      </article>
+      <div class="scope">
+        <div class="scope-gauges">
+          <div class="big-gauge"><span class="g-lab">TOOL CALLS TOTAL</span><span class="dot big-num">24</span></div>
+          <div class="big-gauge err"><span class="g-lab">ACTUALLY FAILED</span><span class="dot big-num">2</span></div>
+        </div>
+        <div class="led-strip" id="ledStrip" aria-label="24 tool calls, 2 failed"></div>
+        <p class="barnote">Same 15-minute session: the two calls that mattered, not the other twenty-two.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── Track 04: terminal ───────────── -->
+  <section class="track" id="cli">
+    <header class="track-head">
+      <span class="track-no dot">04</span>
+      <div>
+        <p class="eyebrow">TRACK 04 · IN THE TERMINAL</p>
+        <h2>The same tools and more, from the command line.</h2>
+        <p class="sub">One binary. No server, nothing uploaded. Same sessions the browser reads, over SSH, inside a container, wherever you're already working.</p>
+      </div>
+    </header>
+
+    <div class="cli-grid">
+      <div class="cmd-list" role="tablist" aria-label="Commands">
+        <button class="cmd on" role="tab" aria-selected="true" data-pane="vcr"><b>vcr</b><span>The bare command: a banner and where every subcommand lives.</span></button>
+        <button class="cmd" role="tab" aria-selected="false" data-pane="ls"><b>vcr ls</b><span>Every session vcr can find, across agents, newest first.</span></button>
+        <button class="cmd" role="tab" aria-selected="false" data-pane="stats"><b>vcr stats</b><span>The full digest for one session: cost, tokens, tool time, dead air.</span></button>
+        <button class="cmd" role="tab" aria-selected="false" data-pane="replay"><b>vcr replay</b><span>The same three-column workspace as the browser, sized to your terminal.</span></button>
+        <button class="cmd" role="tab" aria-selected="false" data-pane="watch"><b>vcr watch</b><span>Follows a live session and calls out trouble as it happens.</span></button>
+        <div class="cli-install">
+          <code>go install github.com/jalonsogo/VCR/cli@latest</code>
+          <button class="tog-key sm" data-copy="go install github.com/jalonsogo/VCR/cli@latest">COPY</button>
+        </div>
+      </div>
+
+      <div class="term" aria-live="polite">
+        <div class="term-bar"><span class="dots"><i></i><i></i><i></i></span><span class="dot">~/code — vcr</span></div>
+<pre class="pane on" data-pane="vcr"><span class="pr">$</span> vcr
+
+  <span class="o">┌─────┐</span>
+  <span class="o">│ ● ■ │</span>  <b>vcr</b>
+  <span class="o">└─────┘</span>
+  Replay, inspect and watch AI coding sessions:
+  Claude Code, Codex, more soon.
+
+  <span class="h">USAGE</span>
+    vcr &lt;command&gt; [session]
+
+  <span class="h">COMMANDS</span>
+    <b>ls</b>       list every session vcr can find
+    <b>stats</b>    the full digest for one session
+    <b>replay</b>   the three-column workspace, in your terminal
+    <b>watch</b>    follow a live session, flag trouble as it happens
+
+  <span class="m">vcr &lt;command&gt; --help for more on each one.</span></pre>
+<pre class="pane" data-pane="ls"><span class="pr">$</span> vcr ls
+
+  <span class="h">AGENT        SESSION       STARTED     DUR       TOOLS</span>
+  Claude Code  1c0de456  <span class="o">●</span>  12:14       15m 10s     24
+  Claude Code  8ab21f90     09:02       41m 22s    118
+  Codex        rollout-2f7c Yesterday   6m 04s     19
+<span class="cur">▌</span></pre>
+<pre class="pane" data-pane="stats"><span class="pr">$</span> vcr stats 1c0de456
+  <span class="m">──────────────────────────────────────────────</span>
+  Duration   15m 10s          Cost  <b>$5.15</b>
+  Tokens     978.0k in · 3.0k out · 373.4k cache read
+  Activity   1 prompts · 25 responses · 24 tool calls
+  Tool time  3m 20s  <span class="m">(30% of wall time)</span>
+  Dead air   7m 40s  <span class="m">(70%) across 11 gaps</span>
+  Errors     <span class="e">2</span>
+
+  <span class="h">TOOL       CALLS  ERR    TIME  SHARE</span>
+  Bash       9  <span class="e">  2</span>  1m 42s  <span class="o">████████████</span><span class="m">████████</span>
+  Edit       6    0     48s  <span class="o">██████</span><span class="m">██████████████</span>
+  Grep       5    0     31s  <span class="o">████</span><span class="m">████████████████</span>
+  Read       4    0     19s  <span class="o">██</span><span class="m">██████████████████</span>
+<span class="cur">▌</span></pre>
+<pre class="pane" data-pane="replay"><span class="pr">$</span> vcr replay 1c0de456
+  <span class="h">SESSION  SCRIPT  TASK  LOG  STATS</span>               <span class="o">● FOLLOW</span>
+  <span class="o">▶</span> 09:00:00  <span class="o">PROMPT</span>  Refactor the auth middleware
+    09:01:00  CLAUDE  → Bash
+    09:01:00  <span class="g">BASH</span>    go test ./...
+    09:02:00  <span class="g">GREP</span>    guard
+    09:03:00  <span class="g">EDIT</span>    guard
+    09:05:00  <span class="g">BASH</span>    go test ./...  <span class="e">◆ exit 1</span>
+
+  <span class="h">REPLAY</span>   |◀  ◀◀  <span class="o">▶</span>  ▶▶  ▶|    1× 2× <span class="o">10×</span> 60×   ○ SKIP DEAD AIR
+  PROMPT     <span class="o">■</span>
+  BASH       ·· <span class="g">■■</span> ······ <span class="g">■</span> ····· <span class="e">■</span> ···
+  EDIT       ········ <span class="g">■■■</span> ··········
+  <span class="m">tab · q</span></pre>
+<pre class="pane" data-pane="watch"><span class="pr">$</span> vcr watch
+  12:20:08  <span class="e">WARN</span>  tool-errors  3 tool calls failed in a row
+  12:22:15  <span class="e">WARN</span>  context      context 88% full (176,336 of 200,000)
+                         <span class="m">a compaction is coming, anything not written</span>
+                         <span class="m">down is about to be summarised away</span>
+  12:24:41  <span class="o">INFO</span>  cache-cold   prompt cache missed on 133,363 tokens
+<span class="cur">▌</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── Track 05: FAQ ───────────── -->
+  <section class="track" id="faq">
+    <header class="track-head">
+      <span class="track-no dot">05</span>
+      <div>
+        <p class="eyebrow">TRACK 05 · FREQUENTLY ASKED</p>
+        <h2>Questions, answered.</h2>
+      </div>
+    </header>
+    <div class="faq">
+      <details>
+        <summary>I don't trust running things in YOLO mode.<i class="pm" aria-hidden="true"></i></summary>
+        <div class="ans">
+          <p>Fair. Run the agent inside a <a href="https://docs.docker.com/ai/sandboxes/">Docker Sandbox</a> instead, an isolated environment that keeps YOLO's blast radius off your actual machine, so replaying the session afterwards isn't the only safety net.</p>
+          <p>If you'd rather have a GUI on top of that than drive sandboxes from a terminal, <a href="http://useden.ai">den</a> is an ADE (Agentic Development Environment) built around exactly this: Docker Sandbox support with no command line required, and it can export a sandboxed session's log straight to VCR.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Does any of this leave my machine?<i class="pm" aria-hidden="true"></i></summary>
+        <div class="ans"><p>No. The <code>.jsonl</code> is read with the local File API and parsed in the page: no server, no build step, no upload. That holds whether you drop a tape on the deck or open one with <code>vcr replay</code> in a terminal.</p></div>
+      </details>
+      <details>
+        <summary>What can I actually get out of a tape (.jsonl)?<i class="pm" aria-hidden="true"></i></summary>
+        <div class="ans">
+          <p>The whole session, not a summary of it. Every tape carries:</p>
+          <ul class="ticks">
+            <li>Wall-clock duration</li><li>Every prompt and response</li><li>Tool calls, with arguments and results</li>
+            <li>Errors and timeouts, marked where they happened</li><li>Token counts: input, output, cache</li><li>Cost, in dollars</li>
+            <li>URLs and endpoints it touched</li><li>Model and stop reason</li><li>Busiest tool</li>
+          </ul>
+          <p>If the session ran inside a Docker Sandbox on version 0.42 or later, the <code>.jsonl</code> also carries policy hits: the network and permission rules that fired during the run. A sandbox isn't required, though.</p>
+        </div>
+      </details>
+      <details>
+        <summary>What are the demo tapes?<i class="pm" aria-hidden="true"></i></summary>
+        <div class="ans"><p>Five real recordings, not scripted demos. Each one started from a single one-shot prompt, copy-pasted into the agent and then left alone to build, test and (usually) get it running. Nothing has been edited out of the log afterwards.</p></div>
+      </details>
+      <details>
+        <summary>Which coding agents are supported?<i class="pm" aria-hidden="true"></i></summary>
+        <div class="ans"><p>Claude Code today. OpenAI Codex is experimental; Gemini CLI, Cursor, GitHub Copilot and Kiro are next. The session format each of them writes is public, so adding a reader for one is a parser, not a rewrite.</p></div>
+      </details>
+      <details>
+        <summary>Where does it find my session logs?<i class="pm" aria-hidden="true"></i></summary>
+        <div class="ans"><p>It doesn't go looking. You hand it one. Claude Code writes to <code>~/.claude/projects/</code>, Codex to <code>~/.codex/sessions/</code>.</p></div>
+      </details>
+      <details>
+        <summary>Do I need to install anything?<i class="pm" aria-hidden="true"></i></summary>
+        <div class="ans"><p>Not to use the deck: that's just a browser tab. A CLI is also there if you'd rather stay in the terminal: <code>vcr ls</code>, <code>stats</code>, <code>replay</code> and <code>watch</code>.</p></div>
+      </details>
+      <details>
+        <summary>Is VCR open source?<i class="pm" aria-hidden="true"></i></summary>
+        <div class="ans"><p>Yes, <a href="https://github.com/jalonsogo/VCR/blob/main/LICENSE">Apache 2.0</a>. The source, the parser and this page are all on <a href="https://github.com/jalonsogo/VCR">GitHub</a>.</p></div>
+      </details>
+    </div>
+  </section>
+
+  <!-- closing CTA -->
+  <section class="outro">
+    <div class="outro-screen">
+      <p class="dot outro-big">INSERT TAPE</p>
+      <p>Your agent already wrote the log. Press play on it.</p>
+      <div class="cta-row center">
+        <a class="cta-key" href="player.html" data-open-tape><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Open a tape</a>
+        <a class="tog-key big" href="#top"><i class="led on"></i>REWIND</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <a class="brand" href="#top" aria-label="VCR home"><span class="mk" aria-hidden="true"><i class="sp"></i><i class="st"></i></span>vcr</a>
+  <span class="grow"></span>
+  <span class="dim">Parsed entirely on your own machine · Apache 2.0</span>
+</footer>
+
+<div class="alt-tag" aria-hidden="true">alt/6 — landing</div>
+<div class="toast dot" id="toast" role="status"></div>
+
+<script src="vendor/three.min.js"></script>
+<script src="landing.js"></script>
+<script src="../shared/parse-tape.js"></script>
+<script src="../shared/tape-report.js"></script>
+<script src="cart3d.js"></script>
+<script src="cartridge.js"></script>
+<script src="landing-deck.js"></script>
+</body>
+</html>
