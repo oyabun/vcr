@@ -159,7 +159,7 @@ body.resizing, body.resizing * { user-select: none !important; }
    Top bar
    ========================================================================== */
 .topbar { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 0 4px; }
-.brand { display: inline-flex; align-items: center; gap: .42em; font: 700 19px/1 var(--f-ui); letter-spacing: -.02em; }
+.brand { display: inline-flex; align-items: center; gap: .42em; font: 700 19px/1 var(--f-ui); letter-spacing: -.02em; color: var(--orange); text-decoration: none; }
 /* the logo, as on the root page: two drawn glyphs, the spool and the sticker, at 42% ink, then "vcr" */
 .brand .mk { display: inline-flex; align-items: center; gap: .16em; opacity: .42; }
 .brand .mk .sp, .brand .mk .st { width: .5em; height: .5em; background: currentColor; }

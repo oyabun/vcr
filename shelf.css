@@ -14,7 +14,7 @@
    Placed in % of the shell, from the 3D model's 4 x 3 units; type in cqw. The works show twice:
    blurred under the frost, and sharp through the window (a copy offset to line up exactly). */
 /* .mshelf, not .shelf: landing.css has a .shelf of its own, whose phone breakpoints pushed this one off screen */
-.mshelf { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 20px; margin-top: 40px; }
+.mshelf { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 40px; }
 @media (max-width: 960px) { .mshelf { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .mshelf { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; } }
 /* one column, as wide as the cell: otherwise the unwrapped caption sets a min width and pushes the grid off a phone */

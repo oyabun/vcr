@@ -22,14 +22,6 @@
     lastState = label; status.dataset.state = st; stateEl.textContent = label;
   }
 
-  /* ---------------- the speed dropdown in the hero: opens on its button, closes on a click outside or Esc ---------------- */
-  const speedBtn = $('speedBtn'), speedPop = $('speedPop');
-  if (speedBtn && speedPop) {
-    const setOpen = (open) => { speedPop.hidden = !open; speedBtn.setAttribute('aria-expanded', String(open)); };
-    speedBtn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(speedPop.hidden); });
-    document.addEventListener('click', (e) => { if (!speedPop.hidden && !e.target.closest('.speed-menu')) setOpen(false); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !speedPop.hidden) { setOpen(false); speedBtn.focus(); } });
-  }
 
   /* ---------------- Track 01: what's on the tape ----------------
      Everything the session log holds, as cards with live counts and an example each, for the tape in the hero
@@ -46,7 +38,10 @@
     invFor = S.D;
     const R = window.analyzeTape(S.D.tape), T = R.tokens;
     $('invTitle').textContent = R.title;
-    $('invLink').href = 'exp/deck-studio.html?demo=' + encodeURIComponent(R.source.replace(/\.jsonl$/, '')) + '&view=report';
+    // K.studioHref(): the current tape's own studio link — a demo's ?demo=id, or (a custom tape) just the
+    // studio's own URL, relying on sessionStorage the way a dropped tape (below) hands it over.
+    const studio = K.studioHref();
+    $('invLink').href = studio + (studio.includes('?') ? '&' : '?') + 'view=report';
     const list = (items) => items.length ? '<ul>' + items.map((x) => '<li>' + x + '</li>').join('') + '</ul>' : '';
     const none = (what) => '<p class="inv-none">' + what + '</p>';
     const card = (col, label, num, unit, body) => '<article class="inv-card" style="--k:var(' + col + ')"><p class="inv-lbl">' + label + '</p><p class="inv-num"><b class="dot">' + num + '</b>' + (unit ? '<span>' + unit + '</span>' : '') + '</p>' + body + '</article>';

@@ -194,7 +194,7 @@ h3 { font-size: 20px; font-weight: 700; letter-spacing: -.015em; line-height: 1.
 
 /* ---------- hero ---------- */
 /* the page breathes: generous rhythm between sections, scaled down on small screens */
-.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 560px); gap: 80px; align-items: center; padding: clamp(56px, 8vw, 112px) 0 clamp(48px, 7vw, 96px); }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 560px); gap: 80px; align-items: center; padding: clamp(56px, 8vw, 112px) 0 clamp(28px, 4vw, 56px); }
 /* the demo tape beside the headline, with room around it, and the deck that plays it under the hero (cartridge.css) */
 /* the headline in two lines, "Rewind the work behind / your [agent] agent.", wider than its column: it runs on over
    the cartridge a little (the copy sits above the canvas). Two columns only; stacked, it wraps as usual. */
@@ -212,7 +212,7 @@ h3 { font-size: 20px; font-weight: 700; letter-spacing: -.015em; line-height: 1.
 .hero .hero-cart .cart-hint { opacity: 0; transition: opacity .25s; }
 .hero .hero-cart:hover .cart-hint, .hero .hero-cart:focus-within .cart-hint { opacity: 1; }
 html, body { overflow-x: clip; }   /* the bleed never adds a sideways scroll */
-.hero-deck { padding: 0 0 clamp(56px, 9vw, 128px); }
+.hero-deck { padding: 0 0 clamp(32px, 5vw, 64px); }
 .hero-deck .deck { margin: 0; max-width: none; }   /* as wide as the hero above it */
 .agent-slot {
   /* a compact badge in the headline's line: the agent's mark, then its name; its width is fixed by landing.js
@@ -233,40 +233,44 @@ html, body { overflow-x: clip; }   /* the bleed never adds a sideways scroll */
 .cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
 .cta-row.center { justify-content: center; }
 
-/* the demo deck's transport and speed, small, beside "Open a tape" (the keys from cartridge.css, scaled down) */
+/* "where are my tapes": an (i) key beside "Load from disk" that opens a little panel with the OS paths —
+   browsers won't let a page point the file picker at a folder, so this is the next best thing */
+.info-menu { position: relative; }
+.info-pop {
+  position: absolute; z-index: 30; top: calc(100% + 10px); left: 0; width: 300px; padding: 16px;
+  border-radius: var(--r-3); background: var(--body); box-shadow: 0 18px 36px -14px rgba(0,0,0,.45), 0 0 0 1px var(--line), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.info-pop[hidden] { display: none; }
+.info-pop-h { margin: 0 0 10px; font: 700 13px var(--f-ui); color: var(--ink); }
+.info-pop .os-paths { font: 500 12.5px var(--f-mono); color: var(--ink-2); }
+.info-pop-note { margin: 10px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-3); }
+
+/* the demo deck's transport and speed, small, beside "Load from disk" (the keys from cartridge.css, scaled down) */
 .cart-keys { display: inline-flex; align-items: center; gap: 6px; height: 52px; padding: 0 10px; border-radius: var(--r-3); background: var(--body); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.45); }
-/* the same controls, having followed the scroll into the bar once the hero's own copy scrolls out of view */
-.bar .cart-keys { height: 42px; box-shadow: inset 0 0 0 1px var(--line-2); }
-.bar .cart-keys .pkey { height: 26px; }
+.cart-keys .t-sep { flex: none; width: 1px; height: 30px; background: var(--line-2); margin: 0 2px; }
+/* the same controls, docked at the bottom of the screen once the hero's own copy scrolls out of view */
+.bottom-bar {
+  position: fixed; left: 50%; bottom: 16px; z-index: 50; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+  transition: transform .2s var(--ease-out), opacity .2s;
+}
+.bottom-bar.on { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.bottom-bar .cart-keys { box-shadow: 0 10px 30px -10px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.45); }
 .cart-keys .keys { gap: 5px; }
 .cart-keys .pkey { width: 34px; height: 30px; border-radius: var(--r-1); box-shadow: 0 3px 0 var(--lip), inset 0 1px 0 var(--key-hi); }
 .cart-keys .pkey:active, .cart-keys .pkey.down { transform: translateY(2px); box-shadow: 0 1px 0 var(--lip), inset 0 1px 0 var(--key-hi); }
 .cart-keys .pkey svg { width: 14px; height: 14px; }
 .cart-keys .pkey.sm { width: 28px; }
 .cart-keys .pkey.sm svg { width: 13px; height: 13px; }
-/* speed as a dropdown: a key showing SPEED and the current speed; it opens a little panel with − speed + and SKIP IDLE */
-.speed-menu { position: relative; margin-left: 2px; }
-.speed-btn {
-  display: inline-grid; grid-template-columns: auto auto; grid-template-rows: auto auto; align-items: center; column-gap: 7px; row-gap: 2px;
-  height: 36px; padding: 0 10px; border: 0; border-radius: var(--r-1); cursor: pointer;
-  background: var(--key); color: var(--key-ink); box-shadow: 0 3px 0 var(--key-lip), inset 0 1px 0 var(--key-hi);
+/* speed: an actual dropdown (a native select, the list is every detent) and SKIP IDLE right beside it, inline
+   with the transport — no popover to open first, so it reads at a glance when it's followed into the bottom bar */
+.speed-sel {
+  height: 30px; margin-left: 2px; padding: 0 8px; border: 0; border-radius: var(--r-1); cursor: pointer;
+  background: var(--key); color: var(--key-ink); font: 700 13px/1 var(--f-ui);
+  box-shadow: 0 3px 0 var(--key-lip), inset 0 1px 0 var(--key-hi);
 }
-.speed-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
-.speed-btn[aria-expanded="true"] { box-shadow: 0 3px 0 var(--key-lip), inset 0 0 0 1.5px var(--orange); }
-.speed-btn .speed-lbl { grid-column: 1; font: 700 7.5px/1 var(--f-mono); letter-spacing: .18em; color: var(--ink-3); }
-.speed-btn b { grid-column: 1; grid-row: 2; font-size: 14px; line-height: 1; text-align: left; }
-.speed-btn .caret { grid-column: 2; grid-row: 1 / 3; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid var(--ink-3); }
-.speed-pop {
-  position: absolute; z-index: 30; top: calc(100% + 10px); right: -6px; display: grid; gap: 10px; justify-items: stretch; padding: 10px;
-  border-radius: var(--r-3); background: var(--body); box-shadow: 0 18px 36px -14px rgba(0,0,0,.45), 0 0 0 1px var(--line), inset 0 1px 0 rgba(255,255,255,.45);
-}
-.speed-pop[hidden] { display: none; }
-.speed-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.speed-pop .speed-row .pkey { width: 28px; height: 26px; font: 700 15px/1 var(--f-ui); color: var(--key-ink); border-radius: var(--r-1); box-shadow: 0 2px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
-.speed-pop .speed-row .pkey:disabled { opacity: .4; cursor: default; transform: none; }
-.speed-val { min-width: 3.4em; text-align: center; font-size: 17px; color: var(--ink); }
-.speed-pop .tog-key { height: 30px; justify-content: center; white-space: nowrap; }
-.speed-pop .tog-key[aria-pressed="true"] .led { background: var(--c-bash); box-shadow: 0 0 8px var(--c-bash); }
+.speed-sel:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
+.cart-keys .tog-key { height: 30px; justify-content: center; white-space: nowrap; }
+.cart-keys .tog-key[aria-pressed="true"] .led { background: var(--c-bash); box-shadow: 0 0 8px var(--c-bash); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* the eyebrow follows the tape: red and blinking while it plays, orange and quick on FF / REW, grey when paused */
@@ -303,7 +307,7 @@ html, body { overflow-x: clip; }   /* the bleed never adds a sideways scroll */
 .lanes figcaption { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 20px; font: 500 11px var(--f-mono); color: var(--ink-3); }
 
 /* ---------- tracks ---------- */
-.track { padding: clamp(72px, 10vw, 144px) 0 clamp(16px, 3vw, 40px); }
+.track { padding: clamp(40px, 6vw, 84px) 0 clamp(12px, 2vw, 24px); }
 .track-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 36px; align-items: start; margin-bottom: clamp(36px, 5vw, 64px); }
 .track-no {
   display: grid; place-items: center; width: 72px; height: 72px; border-radius: var(--r-3);
@@ -317,8 +321,8 @@ html, body { overflow-x: clip; }   /* the bleed never adds a sideways scroll */
 .dots i:first-child { background: var(--orange); }
 
 /* demo tapes: a heading over the small cartridges (cartridge.css) */
-.shelf-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin: clamp(72px, 9vw, 120px) 0 32px; }
-.track .mshelf { margin-top: 0; gap: 28px; }   /* the heading above already spaces it */
+.shelf-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin: 0 0 24px; }
+.track .mshelf, #top > .mshelf { margin-top: 0; gap: 28px; }   /* the heading above already spaces it */
 .shelf-head p { margin: 0; color: var(--ink-3); font-size: 14.5px; }
 .shelf-title { font-size: 26px; }
 
@@ -379,8 +383,8 @@ details[open] .pm::before, details[open] .pm::after { background: var(--orange);
 .ans { padding: 0 28px 26px; color: var(--ink-2); font-size: 15.5px; }
 .ans p { margin: 0 0 10px; max-width: 75ch; } .ans p:last-child { margin: 0; }   /* answers keep a readable line */
 .ans a { color: var(--ink); text-decoration-color: var(--orange); text-underline-offset: 3px; }
-.ans .os-paths { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
-.ans .os-paths b { display: inline-block; min-width: 64px; color: var(--ink); font-weight: 600; }
+.os-paths { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+.os-paths b { display: inline-block; min-width: 64px; color: var(--ink); font-weight: 600; }
 .ticks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 14px; margin: 4px 0 12px; padding: 0; list-style: none; font-size: 14px; }
 .ticks li::before { content: "■ "; color: var(--c-bash); filter: brightness(.8); }
 
@@ -401,6 +405,12 @@ details[open] .pm::before, details[open] .pm::after { background: var(--orange);
 
 .alt-tag { position: fixed; left: 12px; bottom: 10px; z-index: 60; pointer-events: none; font: 600 10.5px var(--f-mono); color: var(--hw-fg-3); background: var(--hw-bg); padding: 4px 8px; border-radius: var(--r-1); opacity: .85; }
 .toast { position: fixed; left: 50%; bottom: 24px; z-index: 70; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; padding: 10px 16px; border-radius: var(--r-2); background: var(--hw-bg); color: var(--c-bash); font-size: 15px; box-shadow: 0 0 0 3px var(--bezel), 0 16px 30px -10px rgba(0,0,0,.5); transition: opacity .2s, transform .2s var(--ease-out); }
+.drop-over::after {
+  content: 'Drop a .jsonl session log to play it'; position: fixed; inset: 0; z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--body) 85%, transparent); backdrop-filter: blur(2px);
+  font: 700 20px var(--f-mono); color: var(--ink); pointer-events: none;
+}
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 /* ---------- responsive ---------- */
@@ -411,7 +421,6 @@ details[open] .pm::before, details[open] .pm::after { background: var(--orange);
 }
 @media (max-width: 860px) {
   .nav { display: none; }
-  .bar .cart-keys { display: none; }   /* no room once the nav is already gone */
   .err-grid, .cli-grid { grid-template-columns: 1fr; }
   .track-head { grid-template-columns: 1fr; gap: 18px; }
   .track-no { width: 60px; height: 60px; font-size: 30px; }

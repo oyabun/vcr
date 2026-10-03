@@ -21,7 +21,7 @@
   const C3 = window.VCRCart3D;
   const SHUTTLE_MS = 3500;                      // end to end while REW / FF is held
   const SPEEDS = [1, 4, 10, 30, 60, 120];        // the knob's detents, as on alt/5
-  let speedIdx = 3;                              // 30×
+  let speedIdx = 1;                              // 4×
   const speed = () => SPEEDS[speedIdx];
   const fmtDur = C3.fmtDur;
   const fmtTC = (sec) => { sec = Math.round(sec); const h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60, s = sec % 60, p = (n) => String(n).padStart(2, '0'); return (h ? h + ':' + p(m) : p(m)) + ':' + p(s); };
@@ -402,19 +402,17 @@
       knobLabelEls.forEach((el, k) => el.classList.toggle('on', k === speedIdx));
     }
     if (speedSel) speedSel.value = String(speedIdx);
-    if ($('speedBtnVal')) $('speedBtnVal').textContent = speed() + '×';   // the dropdown's button shows it too
-    if (speedVal) {
-      speedVal.textContent = speed() + '×';
-      speedDown.disabled = speedIdx === 0; speedUp.disabled = speedIdx === SPEEDS.length - 1;
-    }
+    if (speedVal) speedVal.textContent = speed() + '×';
+    if (speedDown) { speedDown.disabled = speedIdx === 0; speedUp.disabled = speedIdx === SPEEDS.length - 1; }
   }
   if (speedSel) {
     speedSel.innerHTML = SPEEDS.map((sp, i) => '<option value="' + i + '">' + sp + '×</option>').join('');
     speedSel.addEventListener('change', () => setSpeed(+speedSel.value));
   }
-  // or a stepper: − 10× + (#speedDown, #speedVal, #speedUp)
+  // − / + step one detent at a time (#speedDown, #speedUp): pairs with the knob, the dropdown, or #speedVal's
+  // plain-text display, whichever of those a page has — independent of which, since all three are optional.
   const speedVal = $('speedVal'), speedDown = $('speedDown'), speedUp = $('speedUp');
-  if (speedVal) {
+  if (speedDown) {
     speedDown.addEventListener('click', () => setSpeed(speedIdx - 1));
     speedUp.addEventListener('click', () => setSpeed(speedIdx + 1));
   }

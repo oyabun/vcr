@@ -36,7 +36,7 @@
     <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
     <svg class="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
   </button>
-  <a class="cta-key sm" href="player.html" data-open-tape>Open a tape</a>
+  <a class="cta-key sm" href="player.html" data-open-tape>Load from disk</a>
 </header>
 
 <main id="top">
@@ -55,8 +55,22 @@
       <p class="lede">Going YOLO doesn't need to be blind. Drop in the session log your agent already wrote and replay every prompt, tool call, token and dollar, on its own clock, on a timeline you can scrub, with every error marked where it happened.</p>
       <div class="cta-row">
         <a class="cta-key" href="player.html" data-open-tape>
-          <svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Open a tape
+          <svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Load from disk
         </a>
+        <div class="info-menu">
+          <button class="mini-key" id="fileLocBtn" aria-haspopup="true" aria-expanded="false" aria-controls="fileLocPop" aria-label="Where to find your session logs" title="Where to find your session logs">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 11v5.3M12 7.6v.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+          <div class="info-pop" id="fileLocPop" role="group" aria-label="Where to find your session logs" hidden>
+            <p class="info-pop-h">Your tapes live here</p>
+            <ul class="os-paths">
+              <li><b>macOS</b> <code>/Users/you/.claude/projects/</code></li>
+              <li><b>Linux</b> <code>/home/you/.claude/projects/</code></li>
+              <li><b>Windows</b> <code>C:\Users\you\.claude\projects\</code></li>
+            </ul>
+            <p class="info-pop-note">Browsers can&rsquo;t open the file picker to a folder for you &mdash; paste one of these into its address bar once it&rsquo;s open, or just drop the file anywhere on this page.</p>
+          </div>
+        </div>
         <!-- the demo deck's transport and speed, small, beside the main action (cartridge.js finds them by id) -->
         <div class="cart-keys" role="group" aria-label="Play the demo tape">
       <div class="keys">
@@ -69,19 +83,11 @@
         <button class="pkey" id="ffBtn" aria-label="Next event, hold to fast-forward" title="Tap: next event · hold: fast-forward (→)"><svg viewBox="0 0 24 24"><path d="M13 6l8 6-8 6V6zM3 6l8 6-8 6V6z"/></svg></button>
         <button class="pkey sm" id="endBtn" aria-label="Go to end" title="Go to end (End)"><svg viewBox="0 0 24 24"><path d="M16.5 5H19v14h-2.5zM5 5.5v13L15 12z"/></svg></button>
       </div>
-      <div class="speed-menu">
-        <button class="speed-btn" id="speedBtn" aria-haspopup="true" aria-expanded="false" aria-controls="speedPop" title="Speed and skip idle">
-          <span class="speed-lbl">SPEED</span><b class="dot" id="speedBtnVal">30×</b><i class="caret" aria-hidden="true"></i>
-        </button>
-        <div class="speed-pop" id="speedPop" role="group" aria-label="Playback speed and skip idle" hidden>
-          <div class="speed-row">
-            <button class="pkey sm" id="speedDown" aria-label="Slower" title="Slower">−</button>
-            <span class="speed-val dot" id="speedVal" aria-live="polite">30×</span>
-            <button class="pkey sm" id="speedUp" aria-label="Faster" title="Faster">+</button>
-          </div>
-          <button class="tog-key" id="skipBtn" aria-pressed="false" title="Jump over the silences while playing"><i class="led"></i>SKIP IDLE</button>
-        </div>
-      </div>
+      <span class="t-sep" aria-hidden="true"></span>
+      <button class="pkey sm" id="speedDown" aria-label="Slower" title="Slower">−</button>
+      <select class="speed-sel" id="speedSel" aria-label="Playback speed" title="Playback speed"></select>
+      <button class="pkey sm" id="speedUp" aria-label="Faster" title="Faster">+</button>
+      <button class="tog-key" id="skipBtn" aria-pressed="false" title="Jump over the silences while playing"><i class="led"></i>SKIP IDLE</button>
         </div>
       </div>
     </div>
@@ -111,6 +117,14 @@
       </div>
     </div>
   </section>
+
+  <!-- demo tapes -->
+  <div class="shelf-head">
+    <h3 class="shelf-title">Demo tapes</h3>
+    <p>Real recordings, each from a single one-shot prompt. Nothing edited out. Pick one to load it into the deck above.</p>
+  </div>
+  <!-- the demo tapes as small cartridges: one loads into the deck above (cartridge.js builds them) -->
+  <div class="mshelf" id="picker" role="group" aria-label="Demo tapes: load one into the deck above"></div>
 
   <!-- ───────────── Track 01: what's on the tape ───────────── -->
   <section class="track" id="review">
@@ -143,14 +157,6 @@
       <canvas id="lanesCv" role="slider" tabindex="0" aria-label="The demo session's lanes and tape. Click to seek." aria-valuemin="0" aria-valuemax="100"></canvas>
       <figcaption><span>The demo tape in the deck above, as the player shows it: lit once played, dim ahead of the playhead</span><span>Click a lane's name to hide it · click a lane or the tape to seek</span></figcaption>
     </figure>
-
-    <!-- demo tapes -->
-    <div class="shelf-head">
-      <h3 class="shelf-title">Demo tapes</h3>
-      <p>Five real recordings, each from a single one-shot prompt. Nothing edited out. Pick one to load it into the deck.</p>
-    </div>
-    <!-- the demo tapes as small cartridges: one loads into the deck above (cartridge.js builds them) -->
-    <div class="mshelf" id="picker" role="group" aria-label="Demo tapes: load one into the deck above"></div>
   </section>
 
   <!-- ───────────── Track 03: errors ───────────── -->
@@ -250,7 +256,7 @@
       <p class="dot outro-big">INSERT TAPE</p>
       <p>Your agent already wrote the log. Press play on it.</p>
       <div class="cta-row center">
-        <a class="cta-key" href="player.html" data-open-tape><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Open a tape</a>
+        <a class="cta-key" href="player.html" data-open-tape><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Load from disk</a>
         <a class="tog-key big" href="#top"><i class="led on"></i>REWIND</a>
       </div>
     </div>
@@ -265,6 +271,8 @@
 
 <div class="alt-tag" aria-hidden="true">alt/6 — landing</div>
 <div class="toast dot" id="toast" role="status"></div>
+<!-- the hero's transport controls dock here once it scrolls out of view (landing.js) -->
+<div class="bottom-bar" id="bottomBar"></div>
 
 <script src="vendor/three.min.js"></script>
 <script src="landing.js"></script>

@@ -61,6 +61,45 @@
     rd.readAsText(file);
   });
 
+  /* ---------------- drop a tape anywhere on the page: loads it into the hero deck right here, in place ----------------
+     Unlike the file picker above (which hands off to the player), a drop stays on the page: the dropped tape
+     plays in the hero immediately (cartridge.js's loadCustom), and it's also stashed in sessionStorage so the
+     "open in studio" link Track 01 builds (landing-deck.js, via K.studioHref) carries it over correctly. */
+  (function dropAnywhere() {
+    const hasFiles = (e) => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+    let depth = 0;
+    window.addEventListener('dragenter', (e) => { if (!hasFiles(e)) return; depth++; document.body.classList.add('drop-over'); });
+    window.addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; document.body.classList.remove('drop-over'); } });
+    window.addEventListener('dragover', (e) => { if (hasFiles(e)) e.preventDefault(); });
+    window.addEventListener('drop', (e) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault(); depth = 0; document.body.classList.remove('drop-over');
+      const file = e.dataTransfer.files[0]; if (!file) return;
+      const rd = new FileReader();
+      rd.onerror = () => toast('Couldn’t read ' + file.name);
+      rd.onload = () => {
+        let tape;
+        try { tape = window.parseTape(rd.result, file.name); } catch (err) { toast('Not a session log: ' + file.name); return; }
+        if (!window.VCRCartridge) { toast('Still loading — try again in a moment'); return; }
+        try { sessionStorage.setItem(TAPE_KEY, JSON.stringify(tape)); sessionStorage.removeItem(EJECTED_KEY); } catch (err) {}
+        window.VCRCartridge.loadCustom(tape);
+        document.getElementById('top').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      };
+      rd.readAsText(file);
+    });
+  })();
+
+  /* ---------------- "where are my tapes": the (i) key's little panel of OS paths ----------------
+     Opens on its button, closes on a click outside or Esc — the same pattern as the deck's own speed dropdown. */
+  (function fileLocPopover() {
+    const btn = $('fileLocBtn'), pop = $('fileLocPop');
+    if (!btn || !pop) return;
+    const setOpen = (open) => { pop.hidden = !open; btn.setAttribute('aria-expanded', String(open)); };
+    btn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(pop.hidden); });
+    document.addEventListener('click', (e) => { if (!pop.hidden && !e.target.closest('.info-menu')) setOpen(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden) { setOpen(false); btn.focus(); } });
+  })();
+
   /* ---------------- agent slot ----------------
      Each agent's mark (the same paths as the root landing page) and name. The slot keeps one fixed width,
      the widest name's, so swapping names never reflows the headline. */
@@ -141,23 +180,23 @@
      Once .cart-keys scrolls out from under the sticky bar, its exact node (not a copy: cartridge.js
      found it by id, and moving a node keeps every listener on it) moves into the bar, before the
      "Open a tape" key; scrolling back up puts it right back where it was. */
-  (function followControlsIntoBar() {
-    const keys = document.querySelector('.cart-keys'), bar = $('bar');
-    if (!keys || !bar || !('IntersectionObserver' in window)) return;
+  (function followControlsIntoBottomBar() {
+    const keys = document.querySelector('.cart-keys'), dock = $('bottomBar');
+    if (!keys || !dock || !('IntersectionObserver' in window)) return;
     const home = keys.parentNode;
-    // a fixed marker at the controls' own spot: once they move into the (sticky, always-visible) bar, their
-    // own position no longer says anything about scroll, so what's watched is this marker, left behind.
+    // a fixed marker at the controls' own spot: once they move into the fixed bottom dock, their own
+    // position no longer says anything about scroll, so what's watched is this marker, left behind.
     const anchor = document.createElement('span');
     anchor.setAttribute('aria-hidden', 'true');
     home.insertBefore(anchor, keys);
-    const barCta = bar.querySelector('[data-open-tape]');
-    let inBar = false;
+    let inDock = false;
     new IntersectionObserver(([en]) => {
-      const wantInBar = !en.isIntersecting;
-      if (wantInBar === inBar) return;   // already where it should be
-      inBar = wantInBar;
-      if (inBar) bar.insertBefore(keys, barCta); else home.insertBefore(keys, anchor.nextSibling);
-    }, { rootMargin: '-78px 0px 0px 0px' }).observe(anchor);   // -78px: roughly the sticky bar's own height
+      const wantInDock = !en.isIntersecting;
+      if (wantInDock === inDock) return;   // already where it should be
+      inDock = wantInDock;
+      if (inDock) dock.appendChild(keys); else home.insertBefore(keys, anchor.nextSibling);
+      dock.classList.toggle('on', inDock);
+    }, { rootMargin: '-78px 0px 0px 0px' }).observe(anchor);   // -78px: roughly the sticky top bar's height
   })();
 
   /* ---------------- nav: light the section you're in ---------------- */
