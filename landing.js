@@ -90,6 +90,30 @@
     });
   })();
 
+  /* ---------------- the holo sticker tilts and catches a rainbow as the pointer crosses it ----------------
+     The same technique as the Pokémon card effect at poke-holo.simey.me (simeydotme/pokemon-cards-css),
+     simplified to plain CSS custom properties instead of their spring-physics library: percent position
+     within the sticker drives a radial glare (--holo-px/py) and the rainbow shine's own position
+     (--holo-bx/by), and how far off-center the pointer is drives a 3D tilt (--holo-rx/ry). CSS (not JS)
+     eases the return to flat when the pointer leaves — see the sticker's transition-property. */
+  (function holoTilt() {
+    const el = $('holoSticker');
+    if (!el) return;
+    const set = (rx, ry, px, py, bx, by) => {
+      el.style.setProperty('--holo-rx', rx); el.style.setProperty('--holo-ry', ry);
+      el.style.setProperty('--holo-px', px); el.style.setProperty('--holo-py', py);
+      el.style.setProperty('--holo-bx', bx); el.style.setProperty('--holo-by', by);
+    };
+    el.addEventListener('pointermove', (e) => {
+      const r = el.getBoundingClientRect();
+      const px = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+      const py = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+      set(((px - 0.5) * 26).toFixed(2) + 'deg', (-(py - 0.5) * 26).toFixed(2) + 'deg',
+        (px * 100).toFixed(1) + '%', (py * 100).toFixed(1) + '%', (px * 100).toFixed(1) + '%', (py * 100).toFixed(1) + '%');
+    });
+    el.addEventListener('pointerleave', () => set('0deg', '0deg', '50%', '50%', '50%', '50%'));
+  })();
+
   /* ---------------- a link to a FAQ answer opens it ----------------
      The holo sticker's "Where do I find one?" points at #faq-paths; <details> doesn't open itself just
      because it's the scroll target, so open it by hand on load and on every further such link. */

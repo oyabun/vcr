@@ -86,13 +86,18 @@
       <p class="cart-hint">Drag to turn · double-click to face it</p>
       <p class="cart-fallback"><span>This browser can&rsquo;t draw 3D. <a href="player.html">Open the player</a> instead.</span></p>
       <!-- a foil sticker, like the ones on the cartridge itself: drop a tape anywhere on the page (landing.js).
-           A badge at rest; hover or focus stretches it into a card with the rest of the pitch and a link out. -->
-      <div class="holo-sticker" tabindex="0">
-        <span class="holo-shine" aria-hidden="true"></span>
-        <span class="holo-badge" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v12.5"/><path d="M7 11l5 5 5-5"/><path d="M4.5 19.5h15"/></svg>
-          <b>DROP</b>
-        </span>
+           A badge at rest, tilting and catching a rainbow shine as the pointer crosses it (landing.js sets
+           --holo-rx/ry/px/py/bx/by — the same pointer-tracked holo technique as poke-holo.simey.me's cards,
+           simplified to no dependency). Hover or focus also stretches it into a card with a link out. -->
+      <div class="holo-sticker" id="holoSticker" tabindex="0">
+        <div class="holo-rotator">
+          <span class="holo-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v12.5"/><path d="M7 11l5 5 5-5"/><path d="M4.5 19.5h15"/></svg>
+            <b>DROP</b>
+          </span>
+          <span class="holo-shine" aria-hidden="true"></span>
+          <span class="holo-glare" aria-hidden="true"></span>
+        </div>
         <span class="holo-detail">
           <b>Drag &amp; drop a .jsonl tape</b>
           <span>anywhere on this page</span>

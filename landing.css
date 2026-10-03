@@ -226,34 +226,55 @@ h3 { font-size: 20px; font-weight: 700; letter-spacing: -.015em; line-height: 1.
 .hero .hero-cart .cart-hint { opacity: 0; transition: opacity .25s; }
 .hero .hero-cart:hover .cart-hint, .hero .hero-cart:focus-within .cart-hint { opacity: 1; }
 
-/* a foil sticker on the cartridge, like a holographic authenticity seal: a circular badge at rest (icon +
-   DROP), that stretches into a card with the rest of the pitch and a link to the FAQ's OS paths on hover or
-   focus (landing.js drops a tape anywhere on the page). The rainbow is a spinning conic gradient (@property
-   makes the angle animate smoothly) under a diagonal gloss sweep, like foil catching the light. */
+/* a foil sticker on the cartridge, like a holographic authenticity seal: a circular badge at rest, that
+   tilts and catches a rainbow shine + glare as the pointer crosses it — the same technique as the Pokémon
+   card effect at poke-holo.simey.me (simeydotme/pokemon-cards-css): a repeating rainbow gradient in
+   color-dodge for the "foil", a radial white glare in overlay for the glass, both positioned from pointer
+   coordinates landing.js writes to --holo-px/py/bx/by, plus a 3D tilt from --holo-rx/ry. Idle (no pointer,
+   or reduced motion) it still spins gently so it reads as holographic without needing to be touched.
+   Hover or focus also stretches the circle into a card with a link to the FAQ's OS paths. */
 @property --holo-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --holo-rx { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --holo-ry { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --holo-px { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --holo-py { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --holo-bx { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --holo-by { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
 .holo-sticker {
-  position: absolute; top: 20px; left: 20px; z-index: 5; width: 92px; height: 92px; padding: 0;
-  border-radius: 50%; overflow: hidden; cursor: pointer; transform: rotate(-6deg);
+  position: absolute; top: 20px; left: -30px; z-index: 5; width: 92px; height: 92px; padding: 0;
+  border-radius: 50%; cursor: pointer; perspective: 500px; transform: rotate(-6deg);
+  transition: width .32s var(--ease-out), height .32s var(--ease-out), border-radius .32s var(--ease-out), transform .32s var(--ease-out);
+  transition-property: width, height, border-radius, transform, --holo-rx, --holo-ry, --holo-px, --holo-py, --holo-bx, --holo-by;
+}
+.holo-sticker:hover, .holo-sticker:focus-within { width: 236px; height: 150px; border-radius: 20px; transform: rotate(0deg); }
+.holo-rotator {
+  position: absolute; inset: 0; overflow: hidden; border-radius: inherit;
+  transform: rotateX(var(--holo-ry)) rotateY(var(--holo-rx)); transform-style: preserve-3d;
   background: conic-gradient(from var(--holo-a), #ff9a6b, #ffd36b, #8affc1, #6bc8ff, #c58bff, #ff6bb0, #ff9a6b);
   box-shadow: 0 10px 24px -10px rgba(0,0,0,.5), inset 0 0 0 3px rgba(255,255,255,.55), inset 0 0 14px rgba(0,0,0,.15);
   animation: holo-spin 5s linear infinite;
-  transition: width .32s var(--ease-out), height .32s var(--ease-out), border-radius .32s var(--ease-out), transform .32s var(--ease-out);
 }
-.holo-sticker:hover, .holo-sticker:focus-within { width: 236px; height: 150px; border-radius: 20px; transform: rotate(0deg); }
+.holo-sticker:hover .holo-rotator, .holo-sticker:focus-within .holo-rotator { animation-play-state: paused; }
 .holo-shine {
-  position: absolute; inset: -40%; pointer-events: none;
-  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.85) 48%, rgba(255,255,255,.2) 52%, transparent 65%);
-  background-size: 220% 220%; mix-blend-mode: overlay; animation: holo-shine 3.2s ease-in-out infinite;
+  position: absolute; inset: 0; opacity: .55; mix-blend-mode: color-dodge; filter: brightness(1.1) contrast(1.6) saturate(1.4);
+  background-image: repeating-linear-gradient(110deg, #ff5b1f 0%, #ffd36b 12%, #8affc1 24%, #6bc8ff 36%, #c58bff 48%, #ff6bb0 60%, #ff5b1f 72%, #ffd36b 84%, #8affc1 96%, #ff5b1f 100%);
+  background-size: 250% 250%; background-position: var(--holo-bx) var(--holo-by); transition: opacity .25s;
 }
+.holo-glare {
+  position: absolute; inset: 0; opacity: 0; mix-blend-mode: overlay; transition: opacity .25s;
+  background: radial-gradient(circle at var(--holo-px) var(--holo-py), rgba(255,255,255,.95) 0%, rgba(255,255,255,.3) 35%, rgba(255,255,255,0) 70%);
+}
+.holo-sticker:hover .holo-shine, .holo-sticker:focus-within .holo-shine { opacity: .85; }
+.holo-sticker:hover .holo-glare, .holo-sticker:focus-within .holo-glare { opacity: 1; }
 .holo-badge {
-  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  color: #18181a; transition: opacity .2s;
+  position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  color: #18181a; transition: opacity .2s; transform: translateZ(2px);
 }
 .holo-badge svg { width: 20px; height: 20px; }
 .holo-badge b { font: 700 10.5px/1 var(--f-mono); letter-spacing: .06em; }
 .holo-sticker:hover .holo-badge, .holo-sticker:focus-within .holo-badge { opacity: 0; }
 .holo-detail {
-  position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 18px 20px;
+  position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 18px 20px;
   color: #18181a; text-align: left; opacity: 0; transition: opacity .2s;
 }
 .holo-detail b { font: 700 13px/1.3 var(--f-ui); }
@@ -261,11 +282,10 @@ h3 { font-size: 20px; font-weight: 700; letter-spacing: -.015em; line-height: 1.
 .holo-find { margin-top: 2px; font: 700 10.5px var(--f-mono); color: #18181a; text-decoration: underline; text-decoration-color: rgba(24,24,26,.4); text-underline-offset: 2px; }
 .holo-sticker:hover .holo-detail, .holo-sticker:focus-within .holo-detail { opacity: 1; transition-delay: .1s; }
 @keyframes holo-spin { to { --holo-a: 360deg; } }
-@keyframes holo-shine { 0%, 100% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } }
 @media (prefers-reduced-motion: reduce) {
   .holo-sticker { animation: none; transform: rotate(-6deg); }
   .holo-sticker:hover, .holo-sticker:focus-within { transform: rotate(0deg); }
-  .holo-shine { animation: none; }
+  .holo-rotator { animation: none; }
 }
 html, body { overflow-x: clip; }   /* the bleed never adds a sideways scroll */
 .hero-deck { padding: 0 0 clamp(32px, 5vw, 64px); }
