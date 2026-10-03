@@ -56,7 +56,8 @@
     if (!current) { if (picker) [...picker.children].forEach((b) => b.setAttribute('aria-pressed', 'false')); return; }   // nothing to show
     document.documentElement.style.setProperty('--c', 'var(' + current.c + ')');
     if (picker) [...picker.children].forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === current.id)));
-    if ($('go')) $('go').href = STUDIO + (current.id ? '?demo=' + current.id : '');   // the out-to-studio key: not every page has one
+    // the out-to-studio key(s): not every page has one, and a page (index.html) may have more than one
+    document.querySelectorAll('.js-go-link').forEach((el) => { el.href = STUDIO + (current.id ? '?demo=' + current.id : ''); });
     if (R) R.load();
   }
   // the demo shelf's tapes are parsed up front (shared/demo-tapes.js), so picking one needs no fetch at all
@@ -82,6 +83,8 @@
   }
   function setPlaying(on) {
     S.playing = on; playBtn.classList.toggle('on', on); scr.classList.toggle('playing', on); document.querySelector('.deck').classList.toggle('playing', on);
+    // its glow: a go-link isn't always inside .deck (the hero's isn't), so the class drives the CSS directly
+    document.querySelectorAll('.js-go-link').forEach((el) => el.classList.toggle('playing', on));
     playBtn.setAttribute('aria-label', on ? 'Pause' : 'Play');
   }
   function seek(p) { S.played = clamp(p, 0, 1); }

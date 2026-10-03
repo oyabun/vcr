@@ -126,12 +126,12 @@
 }
 .go:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
 .go .led { width: 7px; height: 7px; border-radius: 50%; background: var(--line-2); transition: background-color .3s, box-shadow .3s; }
-.deck.playing .go { color: color-mix(in srgb, var(--c) 70%, var(--ink));
+.go.playing { color: color-mix(in srgb, var(--c) 70%, var(--ink));
   box-shadow: 0 4px 0 var(--key-lip), 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent), 0 0 22px 2px color-mix(in srgb, var(--c) 45%, transparent), inset 0 1px 0 var(--key-hi);
   animation: go-glow 1.6s ease-in-out infinite; }
-.deck.playing .go .led { background: var(--c); box-shadow: 0 0 8px var(--c), 0 0 2px var(--c); }
+.go.playing .led { background: var(--c); box-shadow: 0 0 8px var(--c), 0 0 2px var(--c); }
 @keyframes go-glow { 50% { box-shadow: 0 4px 0 var(--key-lip), 0 0 0 1.5px color-mix(in srgb, var(--c) 40%, transparent), 0 0 10px 0 color-mix(in srgb, var(--c) 25%, transparent), inset 0 1px 0 var(--key-hi); } }
-@media (prefers-reduced-motion: reduce) { .deck.playing .go { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .go.playing { animation: none; } }
 /* phones: the play key already shows the state, so the screen drops it to make room for the clock */
 @media (max-width: 640px) {
   .controls { flex-wrap: wrap; justify-content: center; gap: 8px 12px; } .d5-knobwrap { margin-right: 0; }

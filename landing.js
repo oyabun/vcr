@@ -66,14 +66,15 @@
      plays in the hero immediately (cartridge.js's loadCustom), and it's also stashed in sessionStorage so the
      "open in studio" link Track 01 builds (landing-deck.js, via K.studioHref) carries it over correctly. */
   (function dropAnywhere() {
+    const overlay = $('dropOverlay');
     const hasFiles = (e) => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
     let depth = 0;
-    window.addEventListener('dragenter', (e) => { if (!hasFiles(e)) return; depth++; document.body.classList.add('drop-over'); });
-    window.addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; document.body.classList.remove('drop-over'); } });
+    window.addEventListener('dragenter', (e) => { if (!hasFiles(e)) return; depth++; overlay.classList.add('on'); });
+    window.addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; overlay.classList.remove('on'); } });
     window.addEventListener('dragover', (e) => { if (hasFiles(e)) e.preventDefault(); });
     window.addEventListener('drop', (e) => {
       if (!hasFiles(e)) return;
-      e.preventDefault(); depth = 0; document.body.classList.remove('drop-over');
+      e.preventDefault(); depth = 0; overlay.classList.remove('on');
       const file = e.dataTransfer.files[0]; if (!file) return;
       const rd = new FileReader();
       rd.onerror = () => toast('Couldn’t read ' + file.name);
@@ -89,15 +90,13 @@
     });
   })();
 
-  /* ---------------- "where are my tapes": the (i) key's little panel of OS paths ----------------
-     Opens on its button, closes on a click outside or Esc — the same pattern as the deck's own speed dropdown. */
-  (function fileLocPopover() {
-    const btn = $('fileLocBtn'), pop = $('fileLocPop');
-    if (!btn || !pop) return;
-    const setOpen = (open) => { pop.hidden = !open; btn.setAttribute('aria-expanded', String(open)); };
-    btn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(pop.hidden); });
-    document.addEventListener('click', (e) => { if (!pop.hidden && !e.target.closest('.info-menu')) setOpen(false); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden) { setOpen(false); btn.focus(); } });
+  /* ---------------- a link to a FAQ answer opens it ----------------
+     The holo sticker's "Where do I find one?" points at #faq-paths; <details> doesn't open itself just
+     because it's the scroll target, so open it by hand on load and on every further such link. */
+  (function openLinkedFaq() {
+    const openTarget = () => { const d = document.getElementById(location.hash.slice(1)); if (d && d.tagName === 'DETAILS') d.open = true; };
+    window.addEventListener('hashchange', openTarget);
+    openTarget();
   })();
 
   /* ---------------- agent slot ----------------

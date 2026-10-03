@@ -29,14 +29,12 @@
     <a class="seg-btn" href="#faq">FAQ</a>
   </nav>
   <span class="grow"></span>
-  <a class="mini-key" href="https://github.com/jalonsogo/VCR" aria-label="GitHub repository" title="GitHub">
-    <svg viewBox="0 0 24 24" class="fill"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>
-  </a>
   <button class="mini-key theme-key" id="btnTheme" aria-label="Toggle theme" title="Toggle theme (T)">
     <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
     <svg class="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
   </button>
-  <a class="cta-key sm" href="player.html" data-open-tape>Load from disk</a>
+  <a class="cta-key sm js-go-link" href="exp/deck-studio.html?demo=orbit-watch">Open in studio</a>
+  <a class="tog-key" href="player.html" data-open-tape>Select from disk</a>
 </header>
 
 <main id="top">
@@ -54,23 +52,13 @@
       </h1>
       <p class="lede">Going YOLO doesn't need to be blind. Drop in the session log your agent already wrote and replay every prompt, tool call, token and dollar, on its own clock, on a timeline you can scrub, with every error marked where it happened.</p>
       <div class="cta-row">
-        <a class="cta-key" href="player.html" data-open-tape>
-          <svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Load from disk
+        <!-- always points at whatever tape is loaded right now — a demo, or one dropped in (cartridge.js keeps it current) -->
+        <a class="cta-key js-go-link" id="go" href="exp/deck-studio.html?demo=orbit-watch">
+          <svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Open in studio
         </a>
-        <div class="info-menu">
-          <button class="mini-key" id="fileLocBtn" aria-haspopup="true" aria-expanded="false" aria-controls="fileLocPop" aria-label="Where to find your session logs" title="Where to find your session logs">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 11v5.3M12 7.6v.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          </button>
-          <div class="info-pop" id="fileLocPop" role="group" aria-label="Where to find your session logs" hidden>
-            <p class="info-pop-h">Your tapes live here</p>
-            <ul class="os-paths">
-              <li><b>macOS</b> <code>/Users/you/.claude/projects/</code></li>
-              <li><b>Linux</b> <code>/home/you/.claude/projects/</code></li>
-              <li><b>Windows</b> <code>C:\Users\you\.claude\projects\</code></li>
-            </ul>
-            <p class="info-pop-note">Browsers can&rsquo;t open the file picker to a folder for you &mdash; paste one of these into its address bar once it&rsquo;s open, or just drop the file anywhere on this page.</p>
-          </div>
-        </div>
+        <a class="tog-key big" href="player.html" data-open-tape>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3.5h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z"/><path d="M14 3.5v4h4"/></svg>Select a file from disk
+        </a>
         <!-- the demo deck's transport and speed, small, beside the main action (cartridge.js finds them by id) -->
         <div class="cart-keys" role="group" aria-label="Play the demo tape">
       <div class="keys">
@@ -97,6 +85,20 @@
       <canvas id="cv" aria-label="A 3D data cartridge holding a demo session. Drag to turn it."></canvas>
       <p class="cart-hint">Drag to turn · double-click to face it</p>
       <p class="cart-fallback"><span>This browser can&rsquo;t draw 3D. <a href="player.html">Open the player</a> instead.</span></p>
+      <!-- a foil sticker, like the ones on the cartridge itself: drop a tape anywhere on the page (landing.js).
+           A badge at rest; hover or focus stretches it into a card with the rest of the pitch and a link out. -->
+      <div class="holo-sticker" tabindex="0">
+        <span class="holo-shine" aria-hidden="true"></span>
+        <span class="holo-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v12.5"/><path d="M7 11l5 5 5-5"/><path d="M4.5 19.5h15"/></svg>
+          <b>DROP</b>
+        </span>
+        <span class="holo-detail">
+          <b>Drag &amp; drop a .jsonl tape</b>
+          <span>anywhere on this page</span>
+          <a class="holo-find" href="#faq-paths">Where do I find one? ↗</a>
+        </span>
+      </div>
     </figure>
   </section>
 
@@ -227,7 +229,7 @@
         <summary>Which coding agents are supported?<i class="pm" aria-hidden="true"></i></summary>
         <div class="ans"><p>Claude Code today. OpenAI Codex is experimental; Gemini CLI, Cursor, GitHub Copilot and Kiro are next. The session format each of them writes is public, so adding a reader for one is a parser, not a rewrite.</p></div>
       </details>
-      <details>
+      <details id="faq-paths">
         <summary>Where does it find my session logs?<i class="pm" aria-hidden="true"></i></summary>
         <div class="ans">
           <p>It doesn't go looking. You hand it one. Claude Code writes each session as a <code>.jsonl</code> file under <code>~/.claude/projects/</code>, one subfolder per project, named for the session:</p>
@@ -243,10 +245,6 @@
         <summary>Do I need to install anything?<i class="pm" aria-hidden="true"></i></summary>
         <div class="ans"><p>Not to use the deck: that's just a browser tab. A CLI is also there if you'd rather stay in the terminal: <code>vcr ls</code>, <code>stats</code>, <code>replay</code> and <code>watch</code>.</p></div>
       </details>
-      <details>
-        <summary>Is VCR open source?<i class="pm" aria-hidden="true"></i></summary>
-        <div class="ans"><p>Yes, <a href="https://github.com/jalonsogo/VCR/blob/main/LICENSE">Apache 2.0</a>. The source, the parser and this page are all on <a href="https://github.com/jalonsogo/VCR">GitHub</a>.</p></div>
-      </details>
     </div>
   </section>
 
@@ -256,7 +254,7 @@
       <p class="dot outro-big">INSERT TAPE</p>
       <p>Your agent already wrote the log. Press play on it.</p>
       <div class="cta-row center">
-        <a class="cta-key" href="player.html" data-open-tape><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Load from disk</a>
+        <a class="cta-key" href="player.html" data-open-tape><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Select a file from disk</a>
         <a class="tog-key big" href="#top"><i class="led on"></i>REWIND</a>
       </div>
     </div>
@@ -273,6 +271,14 @@
 <div class="toast dot" id="toast" role="status"></div>
 <!-- the hero's transport controls dock here once it scrolls out of view (landing.js) -->
 <div class="bottom-bar" id="bottomBar"></div>
+<!-- shown full-screen while dragging a file over the page (landing.js) -->
+<div class="drop-overlay" id="dropOverlay" aria-hidden="true">
+  <div class="drop-frame">
+    <svg viewBox="0 0 24 24" class="drop-icon"><path d="M12 3v13.5"/><path d="M6 12l6 6 6-6"/><path d="M4 20.5h16"/></svg>
+    <b>Drop it anywhere</b>
+    <span>Your .jsonl tape loads straight into the deck above</span>
+  </div>
+</div>
 
 <script src="vendor/three.min.js"></script>
 <script src="landing.js"></script>

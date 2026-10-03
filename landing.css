@@ -145,6 +145,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
   transition: transform .07s, box-shadow .07s, color .15s;
 }
 .tog-key:active, .tog-key.down { transform: translateY(2px); box-shadow: 0 1px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
+.tog-key svg { width: 16px; height: 16px; flex: none; }
 .tog-key.sm { height: 24px; padding: 0 9px; font-size: 9.5px; }
 .tog-key.big { height: 52px; padding: 0 20px; font-size: 12px; box-shadow: 0 4px 0 var(--key-lip), 0 8px 14px -8px rgba(0,0,0,.4), inset 0 1px 0 var(--key-hi); }
 .tog-key.big:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
@@ -161,6 +162,19 @@ main { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
 }
 .cta-key svg { width: 18px; height: 18px; fill: currentColor; }
 .cta-key:active { transform: translateY(3px); box-shadow: 0 1px 0 #B8380C, inset 0 1px 0 rgba(255,255,255,.35); }
+/* any "open in studio" key (.js-go-link) pulses in the tape's own colour while it plays (cartridge.js
+   toggles .playing on each and sets --c) — the same glow player.html's .go key already has, layered on
+   the key's 3D lip. A page can have more than one of these (index.html: hero and top bar). */
+.cta-key.playing {
+  animation: cta-glow 1.6s ease-in-out infinite;
+  box-shadow: 0 4px 0 #B8380C, 0 10px 20px -10px rgba(184, 56, 12, .6), inset 0 1px 0 rgba(255,255,255,.35),
+    0 0 0 3px color-mix(in srgb, var(--c) 70%, transparent), 0 0 26px 4px color-mix(in srgb, var(--c) 55%, transparent);
+}
+@keyframes cta-glow {
+  50% { box-shadow: 0 4px 0 #B8380C, 0 10px 20px -10px rgba(184, 56, 12, .6), inset 0 1px 0 rgba(255,255,255,.35),
+    0 0 0 3px color-mix(in srgb, var(--c) 40%, transparent), 0 0 12px 0 color-mix(in srgb, var(--c) 30%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { .cta-key.playing { animation: none; } }
 .cta-key.sm { height: 36px; padding: 0 14px; font-size: 13.5px; box-shadow: 0 3px 0 #B8380C, inset 0 1px 0 rgba(255,255,255,.35); }
 
 /* ---------- top bar ---------- */
@@ -211,6 +225,48 @@ h3 { font-size: 20px; font-weight: 700; letter-spacing: -.015em; line-height: 1.
 /* the drag hint only while the pointer is over the cartridge: one less line of small text in the hero */
 .hero .hero-cart .cart-hint { opacity: 0; transition: opacity .25s; }
 .hero .hero-cart:hover .cart-hint, .hero .hero-cart:focus-within .cart-hint { opacity: 1; }
+
+/* a foil sticker on the cartridge, like a holographic authenticity seal: a circular badge at rest (icon +
+   DROP), that stretches into a card with the rest of the pitch and a link to the FAQ's OS paths on hover or
+   focus (landing.js drops a tape anywhere on the page). The rainbow is a spinning conic gradient (@property
+   makes the angle animate smoothly) under a diagonal gloss sweep, like foil catching the light. */
+@property --holo-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.holo-sticker {
+  position: absolute; top: 20px; left: 20px; z-index: 5; width: 92px; height: 92px; padding: 0;
+  border-radius: 50%; overflow: hidden; cursor: pointer; transform: rotate(-6deg);
+  background: conic-gradient(from var(--holo-a), #ff9a6b, #ffd36b, #8affc1, #6bc8ff, #c58bff, #ff6bb0, #ff9a6b);
+  box-shadow: 0 10px 24px -10px rgba(0,0,0,.5), inset 0 0 0 3px rgba(255,255,255,.55), inset 0 0 14px rgba(0,0,0,.15);
+  animation: holo-spin 5s linear infinite;
+  transition: width .32s var(--ease-out), height .32s var(--ease-out), border-radius .32s var(--ease-out), transform .32s var(--ease-out);
+}
+.holo-sticker:hover, .holo-sticker:focus-within { width: 236px; height: 150px; border-radius: 20px; transform: rotate(0deg); }
+.holo-shine {
+  position: absolute; inset: -40%; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.85) 48%, rgba(255,255,255,.2) 52%, transparent 65%);
+  background-size: 220% 220%; mix-blend-mode: overlay; animation: holo-shine 3.2s ease-in-out infinite;
+}
+.holo-badge {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  color: #18181a; transition: opacity .2s;
+}
+.holo-badge svg { width: 20px; height: 20px; }
+.holo-badge b { font: 700 10.5px/1 var(--f-mono); letter-spacing: .06em; }
+.holo-sticker:hover .holo-badge, .holo-sticker:focus-within .holo-badge { opacity: 0; }
+.holo-detail {
+  position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 18px 20px;
+  color: #18181a; text-align: left; opacity: 0; transition: opacity .2s;
+}
+.holo-detail b { font: 700 13px/1.3 var(--f-ui); }
+.holo-detail span { font: 500 11.5px/1.3 var(--f-mono); color: rgba(24,24,26,.75); }
+.holo-find { margin-top: 2px; font: 700 10.5px var(--f-mono); color: #18181a; text-decoration: underline; text-decoration-color: rgba(24,24,26,.4); text-underline-offset: 2px; }
+.holo-sticker:hover .holo-detail, .holo-sticker:focus-within .holo-detail { opacity: 1; transition-delay: .1s; }
+@keyframes holo-spin { to { --holo-a: 360deg; } }
+@keyframes holo-shine { 0%, 100% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } }
+@media (prefers-reduced-motion: reduce) {
+  .holo-sticker { animation: none; transform: rotate(-6deg); }
+  .holo-sticker:hover, .holo-sticker:focus-within { transform: rotate(0deg); }
+  .holo-shine { animation: none; }
+}
 html, body { overflow-x: clip; }   /* the bleed never adds a sideways scroll */
 .hero-deck { padding: 0 0 clamp(32px, 5vw, 64px); }
 .hero-deck .deck { margin: 0; max-width: none; }   /* as wide as the hero above it */
@@ -233,19 +289,7 @@ html, body { overflow-x: clip; }   /* the bleed never adds a sideways scroll */
 .cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
 .cta-row.center { justify-content: center; }
 
-/* "where are my tapes": an (i) key beside "Load from disk" that opens a little panel with the OS paths —
-   browsers won't let a page point the file picker at a folder, so this is the next best thing */
-.info-menu { position: relative; }
-.info-pop {
-  position: absolute; z-index: 30; top: calc(100% + 10px); left: 0; width: 300px; padding: 16px;
-  border-radius: var(--r-3); background: var(--body); box-shadow: 0 18px 36px -14px rgba(0,0,0,.45), 0 0 0 1px var(--line), inset 0 1px 0 rgba(255,255,255,.45);
-}
-.info-pop[hidden] { display: none; }
-.info-pop-h { margin: 0 0 10px; font: 700 13px var(--f-ui); color: var(--ink); }
-.info-pop .os-paths { font: 500 12.5px var(--f-mono); color: var(--ink-2); }
-.info-pop-note { margin: 10px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-3); }
-
-/* the demo deck's transport and speed, small, beside "Load from disk" (the keys from cartridge.css, scaled down) */
+/* the demo deck's transport and speed, small, beside "Select a file from disk" (the keys from cartridge.css, scaled down) */
 .cart-keys { display: inline-flex; align-items: center; gap: 6px; height: 52px; padding: 0 10px; border-radius: var(--r-3); background: var(--body); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.45); }
 .cart-keys .t-sep { flex: none; width: 1px; height: 30px; background: var(--line-2); margin: 0 2px; }
 /* the same controls, docked at the bottom of the screen once the hero's own copy scrolls out of view */
@@ -405,13 +449,27 @@ details[open] .pm::before, details[open] .pm::after { background: var(--orange);
 
 .alt-tag { position: fixed; left: 12px; bottom: 10px; z-index: 60; pointer-events: none; font: 600 10.5px var(--f-mono); color: var(--hw-fg-3); background: var(--hw-bg); padding: 4px 8px; border-radius: var(--r-1); opacity: .85; }
 .toast { position: fixed; left: 50%; bottom: 24px; z-index: 70; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; padding: 10px 16px; border-radius: var(--r-2); background: var(--hw-bg); color: var(--c-bash); font-size: 15px; box-shadow: 0 0 0 3px var(--bezel), 0 16px 30px -10px rgba(0,0,0,.5); transition: opacity .2s, transform .2s var(--ease-out); }
-.drop-over::after {
-  content: 'Drop a .jsonl session log to play it'; position: fixed; inset: 0; z-index: 999;
-  display: flex; align-items: center; justify-content: center;
-  background: color-mix(in srgb, var(--body) 85%, transparent); backdrop-filter: blur(2px);
-  font: 700 20px var(--f-mono); color: var(--ink); pointer-events: none;
-}
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* the full-page drop target: a dashed, holographic-rimmed frame with a bouncing arrow, not just a line of text */
+.drop-overlay {
+  position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center; padding: 28px;
+  background: color-mix(in srgb, var(--body) 80%, transparent); backdrop-filter: blur(3px);
+  opacity: 0; pointer-events: none; transition: opacity .15s;
+}
+.drop-overlay.on { opacity: 1; }
+.drop-frame {
+  position: relative; width: 100%; height: 100%; max-width: 1100px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  border-radius: 28px; border: 3px dashed transparent;
+  background: linear-gradient(var(--body), var(--body)) padding-box,
+    conic-gradient(from var(--holo-a, 0deg), #ff9a6b, #ffd36b, #8affc1, #6bc8ff, #c58bff, #ff6bb0, #ff9a6b) border-box;
+  animation: holo-spin 5s linear infinite;
+}
+.drop-icon { width: 54px; height: 54px; fill: none; stroke: var(--orange); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; animation: drop-bounce 1.1s ease-in-out infinite; }
+.drop-frame b { font: 700 24px var(--f-ui); color: var(--ink); }
+.drop-frame span { font: 500 14px var(--f-mono); color: var(--ink-3); }
+@keyframes drop-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .drop-frame, .drop-icon { animation: none; } }
 
 /* ---------- responsive ---------- */
 @media (max-width: 1100px) {
